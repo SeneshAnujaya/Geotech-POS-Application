@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  password  String
+  name      String
+  role      Role    @default(EMPLOYEE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Sales      Sale[]
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+model Category {
+  categoryId Int      @id @default(autoincrement())
+  name       String   @unique
+  categoryPic String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  products   Product[]
+}
+
+model Product {
+  productId   Int       @id @default(autoincrement())
+  sku         String    @unique
+  name        String
+  description String?
+  costPrice   Decimal   @db.Decimal(10, 2)
+  retailPrice Decimal   @db.Decimal(10, 2)
+  quantity    Int
+  brandName   String
+  categoryId  Int
+  warrantyPeriod String
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category    Category  @relation(fields: [categoryId], references: [categoryId])
+  SalesItem   SalesItem[]
+}
+
+
+model Sale {
+  saleId      Int       @id @default(autoincrement())
+  userId      Int
+  totalAmount Decimal    @db.Decimal(10, 2)
+  createdAt   DateTime   @default(now())
+
+  user        User       @relation(fields: [userId], references: [id])
+  SalesItem   SalesItem[]
+}
+
+model SalesItem {
+  saleItemId  Int        @id @default(autoincrement())
+  saleId      Int
+  productId   Int
+  quantity    Int
+  price       Decimal    @db.Decimal(10, 2)
+
+  sale        Sale       @relation(fields: [saleId], references: [saleId])
+  product     Product    @relation(fields: [productId], references: [productId])
+}
