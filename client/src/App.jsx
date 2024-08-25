@@ -6,6 +6,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import Dashboard from "./pages/Dashboard";
 import Category from "./pages/Category";
 import Products from "./pages/Products";
+import Orders from "./pages/Orders";
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
         <Route path="/sign-up" element={<SignUp />} />
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<Dashboard/>}/>
+          <Route path="/orders" element={<Orders/>}/>
           <Route path="/categories" element={<Category/>}/>
           <Route path="/products" element={<Products/>}/>
         </Route>

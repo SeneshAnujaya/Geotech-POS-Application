@@ -29,8 +29,6 @@ const Products = () => {
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
-
-  console.log(products);
   
 
   const rows = products.map((product) => ({
@@ -62,36 +60,39 @@ const Products = () => {
     },
   ];
 
-  // const handleCreateCategory = async (formData) => {
+  const handleCreateProduct = async (formData) => {
 
-  //   try {
-  //     const res = await axios.post(
-  //       "http://localhost:3000/api/category/add",
-  //       formData,
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
-  //     const data = res.data;
-  //     if (!data.success) {
-  //       showErrorToast(data.message || "Error occurred");
-  //       return;
-  //     }
-  //     showSuccessToast("Category created successfully!");
-  //     dispatch(fetchCategories());
-  //   } catch (error) {
-  //       if (error.response) {
-  //       showErrorToast(error.response.data.message || "Server error");
-  //     } else if (error.request) {
-  //       showErrorToast("Network error, please try again");
-  //     } else {
-  //       showErrorToast("An unexpected error occurred");
-  //     }
-  //   }
+    console.log(formData);
+    
 
-  // }
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/products/add",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = res.data;
+      if (!data.success) {
+        showErrorToast(data.message || "Error occurred");
+        return;
+      }
+      showSuccessToast("Product is created successfully!");
+      dispatch(fetchProducts());
+    } catch (error) {
+        if (error.response) {
+        showErrorToast(error.response.data.message || "Server error");
+      } else if (error.request) {
+        showErrorToast("Network error, please try again");
+      } else {
+        showErrorToast("An unexpected error occurred");
+      }
+    }
+
+  }
 
   if (error || !products) {
     return (
@@ -171,6 +172,7 @@ const Products = () => {
           <ProductAddModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
+            onCreate={handleCreateProduct}
           />
         </div>
       )}

@@ -1,12 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import { errorHandler } from "../utils/error.js";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const prisma = new PrismaClient();
 
 export const addProduct = async (req, res, next) => {
-    const { sku, name, category, costPrice, retailPrice, quantity, brandName, warrantyPeriod } = req.body;
+   
+    
+    const { sku, productName, categoryId, brand, costPrice, retailPrice, quantity, warranty } = req.body;
 
-    if (!sku || !name || !category || !costPrice || !retailPrice || !quantity || !brandName || !warrantyPeriod) {
+    if (!sku || !productName || !categoryId || !costPrice || !retailPrice || !quantity || !brand || !warranty) {
         return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -14,25 +17,28 @@ export const addProduct = async (req, res, next) => {
         const newProduct = await prisma.product.create({
             data: {
                 sku,
-                name,
+                name: productName,
                 costPrice,
                 retailPrice,
-                quantity,
-                brandName,
-                warrantyPeriod,
-                category: {
-                    connectOrCreate: {
-                        where: { name: category },  // Connect to the category by its name
-                        create: { name: category },  // Create a new category if it doesn't exist
-                    },
-                },
+                quantity: parseInt(quantity),
+                brandName: brand,
+                warrantyPeriod: warranty,
+                categoryId: parseInt(categoryId)
             },
         });
 
         res.status(201).json({ success: true, data: newProduct });
     } catch (error) {
         console.error('Error adding product:', error);
+        if (error instanceof PrismaClientKnownRequestError) {
+            if (error.code === "P2002") {
+              return res
+                .status(400)
+                .json({ success: false, message: "SKU Number already exists" });
+            }
+          }
         next(error);
+     
     }
 };
 

@@ -1,4 +1,4 @@
-import { Archive,  BoxIcon,  BoxSelect,  BoxSelectIcon,  Clipboard,  ClipboardCheckIcon,  ClipboardList,  Icon,Menu } from "lucide-react";
+import { Archive,  BoxIcon,  BoxSelect,  BoxSelectIcon,  Clipboard,  ClipboardCheckIcon,  ClipboardList,  Icon,Menu, ShoppingBag } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSidebarCollapsed } from "../redux/uiSetting/uiSettingsSlice";
 import { Link } from "react-router-dom";
@@ -44,6 +44,7 @@ const Sidebar = () => {
         {/* links */}
         <div className="flex-grow mt-8">
           <SidebarLink href="/" icon={Archive} label="Dashboard" isCollapsed={isSidebarCollapsed}/>
+          <SidebarLink href="/orders" icon={ShoppingBag} label="Orders" isCollapsed={isSidebarCollapsed}/>
           <SidebarLink href="/categories" icon={ClipboardList} label="Categories" isCollapsed={isSidebarCollapsed}/>
           <SidebarLink href="/products" icon={BoxIcon} label="Products" isCollapsed={isSidebarCollapsed}/>
         </div>
