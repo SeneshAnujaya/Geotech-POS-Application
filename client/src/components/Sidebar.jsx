@@ -29,7 +29,7 @@ const Sidebar = () => {
     dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
   }
 
-  const sidebarClassNames = `fixed flex flex-col ${isSidebarCollapsed ? "w-0 md:w-16" : "w-72 md:64"} bg-slate-800 transition-all duration-300 overflow-hidden h-full shadow-md z-40`;
+  const sidebarClassNames = `fixed flex flex-col ${isSidebarCollapsed ? "w-0 md:w-16" : "w-72 md:64"} bg-slate-900 transition-all duration-300 overflow-hidden h-full shadow-md z-40 border-r border-slate-700`;
 
   return (
     <div className={sidebarClassNames}>
