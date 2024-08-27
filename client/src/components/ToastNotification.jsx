@@ -7,11 +7,21 @@ const ToastNotification = () => (
   );
   
   export const showErrorToast = (message) => {
-    toast.error(message);
+    toast.error(message, {
+      closeOnClick: true,
+    });
   };
   
   export const showSuccessToast = (message) => {
-    toast.success(message);
+    toast.success(message, {
+      closeOnClick: true,
+    });
+  };
+
+  export const showWarningToast = (message) => {
+    toast.warning(message, {
+      closeOnClick: true,
+    });
   };
 
 

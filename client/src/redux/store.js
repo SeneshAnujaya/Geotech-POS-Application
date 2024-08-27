@@ -3,11 +3,12 @@ import userReducer from './user/userSlice';
 import uiSettingReducer from "./uiSetting/uiSettingsSlice";
 import categoryReducer from './categories/categorySlice';
 import productsReducer from './products/productsSlice';
+import cartReducer from './cart/cartSlice';
 import {persistReducer, persistStore} from 'redux-persist';
 import storage from "redux-persist/lib/storage";
 
 
-const rootReducer = combineReducers({user: userReducer, uisetting: uiSettingReducer, categories: categoryReducer, products: productsReducer});
+const rootReducer = combineReducers({user: userReducer, uisetting: uiSettingReducer, categories: categoryReducer, products: productsReducer, cart: cartReducer});
 
 const persistConfig = {
     key: 'root',
