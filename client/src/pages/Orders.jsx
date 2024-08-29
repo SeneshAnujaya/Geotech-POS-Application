@@ -26,12 +26,14 @@ import {
 } from "../components/ToastNotification";
 import axios from "axios";
 import MouseImage from "../assets/mouse.jpg";
+import generatePDF from "../components/generatePDF";
 
 const Orders = () => {
   // const [loading, setLoading] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [billingName, setBillingName] = useState("");
 
   const {
     categories,
@@ -44,6 +46,10 @@ const Orders = () => {
   );
 
   const { cartItems } = useSelector((state) => state.cart);
+
+  const { currentUser } = useSelector((state) => state.user);
+
+  const currentUserName = currentUser.rest.name;
 
   const dispatch = useDispatch();
 
@@ -79,15 +85,15 @@ const Orders = () => {
   };
 
   const handleIncreaseQuantity = (sku) => {
-    dispatch(increaseItemQuantity({sku}));
-  }
+    dispatch(increaseItemQuantity({ sku }));
+  };
 
   const handleDecreaseQuantity = (sku) => {
-    dispatch(decreaseItemQuantity({sku}));
-  }
+    dispatch(decreaseItemQuantity({ sku }));
+  };
 
   // Calculate Totals
-  const {subTotal, total} = useMemo(() => {
+  const { subTotal, total } = useMemo(() => {
     let subTotal = 0;
     cartItems.forEach((item) => {
       subTotal += item.cartQuantity * parseFloat(item.retailPrice);
@@ -97,23 +103,16 @@ const Orders = () => {
     return {
       subTotal: subTotal.toFixed(2),
       total: total.toFixed(2),
-    }
+    };
   }, [cartItems]);
 
-  // // Generate Bill functionality
-  // const generateBill = () => {
-  //   const billItems = cartItems.map((item) => ({
-  //     name: item.name,
-  //     quantity: item.quantity,
-  //     price: parseFloat(item.retailPrice).toFixed(2),
-  //     total: (item.quantity * item.retailPrice).toFixed(2)
-  //   }));
-  // }
-
-  // const totalBill = billItems.reduce((acc, item) => acc + parseFloat(item.total), 0).toFixed(2);
   useEffect(() => {
     console.log(cartItems);
   }, [cartItems]);
+
+  const handlePrintInvoice = () => {
+    generatePDF(cartItems, subTotal, total, currentUserName, billingName, dispatch, setBillingName);
+  }
 
   return (
     <MainLayout>
@@ -286,11 +285,17 @@ const Orders = () => {
                     </div>
                     <div className="flex items-center justify-end w-full flex-wrap mt-2">
                       <div className=" flex items-center gap-3 rounded-md">
-                        <button onClick={() => handleDecreaseQuantity(item.sku)} className="bg-slate-900 border border-slate-500 rounded-md p-[1px] hover:bg-blue-600 hover:border-blue-600">
+                        <button
+                          onClick={() => handleDecreaseQuantity(item.sku)}
+                          className="bg-slate-900 border border-slate-500 rounded-md p-[1px] hover:bg-blue-600 hover:border-blue-600"
+                        >
                           <MinusIcon className="w-4 h-4 text-slate-200" />
                         </button>
                         <p>{item.cartQuantity}</p>
-                        <button onClick={() => handleIncreaseQuantity(item.sku)} className="border border-slate-500  rounded-md p-[1px] hover:bg-blue-600  hover:border-blue-600">
+                        <button
+                          onClick={() => handleIncreaseQuantity(item.sku)}
+                          className="border border-slate-500  rounded-md p-[1px] hover:bg-blue-600  hover:border-blue-600"
+                        >
                           <Plus className="w-4 h-4 text-slate-200" />
                         </button>
                       </div>
@@ -322,7 +327,24 @@ const Orders = () => {
                 LKR {total}
               </p>
             </div>
-            <button className="text-center w-full bg-blue-600 mt-4 py-2 px-2 rounded-md">Print Invoice</button>
+            <div className="flex items-end justify-between gap-2">
+              <input
+                type="text"
+                name="customerName"
+                placeholder="Billing Name"
+                className="mt-4 w-full px-2 py-1.5 border border-slate-600 bg-slate-900 rounded-md focus:outline-none focus:border-blue-500 text-sm"
+                onChange={(e) => setBillingName(e.target.value)}
+                value={billingName}
+              />
+              {/* <button className="bg-slate-700 text-[0.9rem] py-1.5 px-2 rounded-md hover:cursor-pointer">submit</button> */}
+            </div>
+
+            <button
+              className="text-center w-full bg-blue-600 mt-4 py-2 px-2 rounded-md"
+              onClick={handlePrintInvoice}
+            >
+              Print Invoice
+            </button>
           </div>
         </div>
         {/* Header bar */}
