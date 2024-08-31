@@ -50,6 +50,7 @@ const Orders = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const currentUserName = currentUser.rest.name;
+  const currentUserId = currentUser.rest.id;
 
   const dispatch = useDispatch();
 
@@ -67,7 +68,6 @@ const Orders = () => {
   // Cart functionalities
   const handleAddToCart = (product) => {
     dispatch(addItemToCart(product));
-    showSuccessToast("Product Add to Cart");
   };
 
   const isInCart = (sku) => {
@@ -110,8 +110,62 @@ const Orders = () => {
     console.log(cartItems);
   }, [cartItems]);
 
-  const handlePrintInvoice = () => {
-    generatePDF(cartItems, subTotal, total, currentUserName, billingName, dispatch, setBillingName);
+  const handlePrintInvoice = async () => {
+
+    const updatedStockProduct = cartItems.map(item => ({
+      sku: item.sku,
+      newQuantity: item.quantity - item.cartQuantity,
+     }));
+
+    //  Sales record array
+    const itemsToRecord = cartItems.map(item => ({
+      sku: item.sku,
+      productId: item.productId,
+      cartQuantity: item.cartQuantity,
+      price: item.retailPrice
+
+    }));
+
+     if (!cartItems || cartItems.length === 0) {
+      showWarningToast("Cart is empty");
+      return;
+    }
+  
+    if (billingName == "") {
+      showErrorToast("Customer Name Required");
+      return;
+    }
+ 
+
+    try {
+     const res = await axios.post('http://localhost:3000/api/products/updatestock', {stockUpdates: updatedStockProduct});
+
+     if(res.status === 200 && res.data.success) {
+      showSuccessToast('Stock Updated!');
+      dispatch(fetchProducts());
+      generatePDF(cartItems, subTotal, total, currentUserName, billingName, dispatch, setBillingName);   
+     } else {
+      showErrorToast("Failed to update stock!")
+     }
+
+    //  create Sale record request
+    const saleRes = await axios.post("http://localhost:3000/api/sales/createSaleRecord", {
+      userId : currentUserId,
+      items: itemsToRecord
+    })
+
+    if(saleRes.status === 201 && saleRes.data.success){
+      showSuccessToast("Sale recorded successfully!");
+    } else {
+      showErrorToast("Failed to add sale record!");
+    }
+     
+    } catch (error) {
+      console.log(error);
+      showErrorToast("Failed update stock. Please try again.");
+      
+    }
+    
   }
 
   return (
@@ -223,7 +277,7 @@ const Orders = () => {
                           <Plus className="w-5 h-5 text-slate-100" />
                         </span>
                       </div> */}
-                      <p className="leading-none text-[0.8rem] font-normal  flex items-center text-white bg-green-700 px-2 rounded-full">
+                      <p className={`leading-none text-[0.8rem] font-normal  flex items-center text-white bg-green-700 px-2 rounded-full ${product.quantity > 0 ? "bg-green-700" :"bg-red-800"}`}>
                         {product.quantity} Stock
                       </p>
                     </div>

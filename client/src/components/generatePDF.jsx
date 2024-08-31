@@ -10,17 +10,6 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs;
 const generatePDF = (cartItems, subtotal, total, currentUserName, billingName, dispatch, setBillingName) => {
 
 
-  if (!cartItems || cartItems.length === 0) {
-    showWarningToast("Cart is empty");
-    return;
-  }
-
-  if (billingName == "") {
-    showErrorToast("Customer Name Required");
-    return;
-  }
-
-
 
   const currentDate = new Date().toLocaleDateString('en-GB');
 
@@ -180,6 +169,8 @@ const generatePDF = (cartItems, subtotal, total, currentUserName, billingName, d
 
   dispatch(clearCart());
   setBillingName('');
+
+  return true;
 
 };
 

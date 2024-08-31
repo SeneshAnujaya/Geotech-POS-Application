@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { showWarningToast, showSuccessToast } from "../../components/ToastNotification";
 
 const initialState = {
     cartItems: [],
@@ -12,9 +13,21 @@ const cartSlice = createSlice({
             const existingItem = state.cartItems.find((item) => item.sku === action.payload.sku);
 
             if(existingItem) {
-                existingItem.cartQuantity += 1;
+                if(existingItem.cartQuantity < action.payload.quantity) {
+                    existingItem.cartQuantity += 1;
+                    showSuccessToast("Product Add to Cart");
+                } else {
+                    showWarningToast("Not Enough Stock");
+                }
+                
             } else {
-                state.cartItems.push({...action.payload, cartQuantity: 1});
+                if(action.payload.quantity > 0) {
+                    state.cartItems.push({...action.payload, cartQuantity: 1});
+                    showSuccessToast("Product Add to Cart");
+                } else {
+                    showWarningToast("Not Enough Stock");
+                }
+                
             }
         },
 
@@ -24,7 +37,12 @@ const cartSlice = createSlice({
         increaseItemQuantity: (state, action) => {
             const item = state.cartItems.find((item) => item.sku === action.payload.sku);
             if(item) {
-                item.cartQuantity += 1;
+                if(item.cartQuantity < item.quantity) {
+                    item.cartQuantity += 1;
+                } else {
+                    showWarningToast("Not Enough Stock");
+                }
+              
             }
         },
         decreaseItemQuantity: (state, action) => {
