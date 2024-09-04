@@ -3,9 +3,12 @@ import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories } from "../redux/categories/categorySlice";
-import { PlusCircleIcon } from "lucide-react";
+import { PenBoxIcon, PlusCircleIcon, Trash2 } from "lucide-react";
 import CategoryModal from "../components/CategoryModal";
-import { showErrorToast, showSuccessToast } from "../components/ToastNotification";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "../components/ToastNotification";
 import axios from "axios";
 
 const Category = () => {
@@ -31,12 +34,36 @@ const Category = () => {
 
   const columns = [
     { field: "col1", headerName: "Id", width: 200 },
-    { field: "col2", headerName: "Category", width: 200 },
-    { field: "col3", headerName: "CreatedAt", width: 200 },
+    { field: "col2", headerName: "Category", width: 200, editable: true },
+    { field: "col3", headerName: "CreatedAt", width: 200, editable: true },
+    {
+      field: "col4",
+      headerName: "Actions",
+      width: 200,
+      editable: true,
+      renderCell: (params) => (
+        <div className="flex items-center h-full gap-2">
+          <button
+            variant="contained"
+            color="primary"
+            className="bg-blue-900 flex rounded-full h-8 items-center px-2"
+            onClick={() => handleDelete(params.row.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+          <button
+            variant="contained"
+            color="primary"
+            className="bg-blue-900 flex rounded-full h-8 items-center px-2"
+          >
+            <PenBoxIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   const handleCreateCategory = async (formData) => {
-
     try {
       const res = await axios.post(
         "http://localhost:3000/api/category/add",
@@ -45,7 +72,7 @@ const Category = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: true, 
+          withCredentials: true,
         }
       );
       const data = res.data;
@@ -56,7 +83,7 @@ const Category = () => {
       showSuccessToast("Category created successfully!");
       dispatch(fetchCategories());
     } catch (error) {
-        if (error.response) {
+      if (error.response) {
         showErrorToast(error.response.data.message || "Server error");
       } else if (error.request) {
         showErrorToast("Network error, please try again");
@@ -64,9 +91,26 @@ const Category = () => {
         showErrorToast("An unexpected error occurred");
       }
     }
+  };
 
-    
-  }
+  const handleDelete = async (id) => {
+    try {
+      const res = await axios.delete(
+        `http://localhost:3000/api/category/deleteCategory/${id}`
+      );
+
+      showSuccessToast("Category deleted successfully!");
+      dispatch(fetchCategories());
+    } catch (error) {
+      if (error.response) {
+        showErrorToast(error.response.data.message);
+      } else {
+        showErrorToast("An unexpected error occurred");
+      }
+    }
+  };
+
+
 
   if (error || !categories) {
     return (
@@ -84,13 +128,16 @@ const Category = () => {
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Categories</h1>
-            <button className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md" onClick={() => setIsModalOpen(true)}>
-              <PlusCircleIcon className="w-5 h-5 mr-2"/>
+            <button
+              className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <PlusCircleIcon className="w-5 h-5 mr-2" />
               Add Category
             </button>
           </div>
 
-          <div style={{ width: "100%", maxWidth: "800px" }} className="mt-8">
+          <div style={{ width: "100%", maxWidth: "1000px" }} className="mt-8">
             <DataGrid
               rows={rows}
               columns={columns}
@@ -140,9 +187,12 @@ const Category = () => {
             />
           </div>
           {/* MODAL */}
-          <CategoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onCreate={handleCreateCategory}/>
+          <CategoryModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onCreate={handleCreateCategory}
+          />
         </div>
-    
       )}
     </MainLayout>
   );

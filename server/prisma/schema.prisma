@@ -64,6 +64,7 @@ model Sale {
   userId      Int
   totalAmount Decimal    @db.Decimal(10, 2)
   createdAt   DateTime   @default(now())
+  buyerName   String?  
 
   user        User       @relation(fields: [userId], references: [id])
   SalesItem   SalesItem[]

@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const recordSale = async (req, res) => {
-    const {userId, items} = req.body;
+    const {userId, items, buyerName } = req.body;
 
     if(!userId || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({success: false, message: "Invalid input data"})
@@ -15,6 +15,7 @@ export const recordSale = async (req, res) => {
                 data: {
                     userId: parseInt(userId),
                     totalAmount: items.reduce((total, item) => total + item.price * item.cartQuantity, 0),
+                    buyerName: buyerName
                 }
             });
 
@@ -51,4 +52,28 @@ export const recordSale = async (req, res) => {
         console.error(error.message);
     }
 }
+
+export const getAllSales = async (req, res) => {
+    try {
+        const sales = await prisma.sale.findMany({
+            include: {
+                SalesItem: {
+                    include: {
+                        product: true
+                    }
+                },
+                user: {
+                    select: {
+                        name: true,
+                    }
+                }
+            }
+        });
+        res.status(200).json({ success: true, data: sales });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error fetching sales' });
+    }
+}
+
 

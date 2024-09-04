@@ -1,4 +1,4 @@
-import { Archive,  BoxIcon,  BoxSelect,  BoxSelectIcon,  Clipboard,  ClipboardCheckIcon,  ClipboardList,  Icon,Menu, ShoppingBag } from "lucide-react";
+import { Album, Archive,  BoxIcon,  BoxSelect,  BoxSelectIcon,  Clipboard,  ClipboardCheckIcon,  ClipboardList,  Icon,Menu, ShoppingBag, Sparkles } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSidebarCollapsed } from "../redux/uiSetting/uiSettingsSlice";
 import { Link } from "react-router-dom";
@@ -34,7 +34,7 @@ const Sidebar = () => {
   return (
     <div className={sidebarClassNames}>
         <div className={`flex gap-3 justify-between md:justify-normal items-center pt-8 ${isSidebarCollapsed ? "px-5" : "px-8"}`}>
-            <div>logo</div>
+            <div className="text-blue-400 font-medium text-2xl">G</div>
             <h1 className={`${isSidebarCollapsed ? "hidden":"block"} font-semibold text-2xl`}>GEOTECH</h1>
             <button className="md:hidden px-3 py-3 bg-gray-600 rounded-full hover:bg-blue-100" onClick={toggleSidebar}>
                 <Menu className="w-4 h-4"/>
@@ -47,6 +47,7 @@ const Sidebar = () => {
           <SidebarLink href="/orders" icon={ShoppingBag} label="Orders" isCollapsed={isSidebarCollapsed}/>
           <SidebarLink href="/categories" icon={ClipboardList} label="Categories" isCollapsed={isSidebarCollapsed}/>
           <SidebarLink href="/products" icon={BoxIcon} label="Products" isCollapsed={isSidebarCollapsed}/>
+          <SidebarLink href="/sales" icon={Album} label="Sales" isCollapsed={isSidebarCollapsed}/>
         </div>
 
         {/* footer */}

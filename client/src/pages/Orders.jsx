@@ -52,7 +52,7 @@ const Orders = () => {
   const currentUserName = currentUser.rest.name;
   const currentUserId = currentUser.rest.id;
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch();  
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -142,8 +142,9 @@ const Orders = () => {
 
      if(res.status === 200 && res.data.success) {
       showSuccessToast('Stock Updated!');
-      dispatch(fetchProducts());
-      generatePDF(cartItems, subTotal, total, currentUserName, billingName, dispatch, setBillingName);   
+  
+      generatePDF(cartItems, total, currentUserName, billingName, dispatch, setBillingName);
+      dispatch(fetchProducts());   
      } else {
       showErrorToast("Failed to update stock!")
      }
@@ -151,7 +152,8 @@ const Orders = () => {
     //  create Sale record request
     const saleRes = await axios.post("http://localhost:3000/api/sales/createSaleRecord", {
       userId : currentUserId,
-      items: itemsToRecord
+      items: itemsToRecord,
+      buyerName: billingName
     })
 
     if(saleRes.status === 201 && saleRes.data.success){

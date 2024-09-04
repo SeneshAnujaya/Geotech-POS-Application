@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Category from "./pages/Category";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
+import Sales from "./pages/Sales";
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route path="/orders" element={<Orders/>}/>
           <Route path="/categories" element={<Category/>}/>
           <Route path="/products" element={<Products/>}/>
+          <Route path="/sales" element={<Sales/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

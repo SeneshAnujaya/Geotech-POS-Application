@@ -7,7 +7,7 @@ import { clearCart } from "../redux/cart/cartSlice";
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-const generatePDF = (cartItems, subtotal, total, currentUserName, billingName, dispatch, setBillingName) => {
+const generatePDF = (cartItems,  total, currentUserName, billingName, dispatch, setBillingName) => {
 
 
 
@@ -167,8 +167,12 @@ const generatePDF = (cartItems, subtotal, total, currentUserName, billingName, d
 
   pdfMake.createPdf(docDefinition).print(); // Open print dialog
 
-  dispatch(clearCart());
-  setBillingName('');
+  if (dispatch && setBillingName) {
+    dispatch(clearCart());
+    setBillingName("");
+  }
+  // dispatch(clearCart());
+  // setBillingName('');
 
   return true;
 
