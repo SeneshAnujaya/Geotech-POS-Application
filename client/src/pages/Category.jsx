@@ -1,9 +1,23 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../components/MainLayout";
-import { DataGrid } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridRowEditStartReasons,
+  GridRowEditStopReasons,
+  GridRowModes,
+} from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories } from "../redux/categories/categorySlice";
-import { PenBoxIcon, PlusCircleIcon, Trash2 } from "lucide-react";
+import {
+  DeleteIcon,
+  EditIcon,
+  ExternalLinkIcon,
+  PenBoxIcon,
+  PlusCircleIcon,
+  SaveIcon,
+  Trash2,
+} from "lucide-react";
 import CategoryModal from "../components/CategoryModal";
 import {
   showErrorToast,
@@ -15,52 +29,101 @@ const Category = () => {
   // const [loading, setLoading] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editableRowId, setEditableRowId] = useState(null);
+  const [editedRowData, setEditedRowData] = useState({});
+
+  const [rowModesModel, setRowModesModel] = useState({});
+  const [rows, setRows] = useState([]);
 
   const { categories, loading, error } = useSelector(
     (state) => state.categories
   );
   const dispatch = useDispatch();
+  
 
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  const rows = categories.map((category) => ({
-    id: category.categoryId,
-    col1: category.categoryId,
-    col2: category.name,
-    col3: new Date(category.createdAt).toLocaleString(),
-  }));
+  useEffect(() => {
+    if (categories) {
+      const updatedRows = categories.map((category) => ({
+        id: category.categoryId,
+        col1: category.categoryId,
+        col2: category.name,
+        col3: new Date(category.createdAt).toLocaleString(),
+      }));
+      setRows(updatedRows);
+    }
+  }, [categories]);
+
+  // const rows = categories.map((category) => ({
+  //   id: category.categoryId,
+  //   col1: category.categoryId,
+  //   col2: category.name,
+  //   col3: new Date(category.createdAt).toLocaleString(),
+  // }));
 
   const columns = [
-    { field: "col1", headerName: "Id", width: 200 },
-    { field: "col2", headerName: "Category", width: 200, editable: true },
-    { field: "col3", headerName: "CreatedAt", width: 200, editable: true },
+    { field: "col1", headerName: "Id", width: 200, editable: false },
     {
-      field: "col4",
-      headerName: "Actions",
+      field: "col2",
+      headerName: "Category",
+      width: 200,
+      editable: (params) => params.row.id === editableRowId,
+    },
+    {
+      field: "col3",
+      headerName: "CreatedAt",
       width: 200,
       editable: true,
-      renderCell: (params) => (
-        <div className="flex items-center h-full gap-2">
-          <button
-            variant="contained"
-            color="primary"
-            className="bg-blue-900 flex rounded-full h-8 items-center px-2"
-            onClick={() => handleDelete(params.row.id)}
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-          <button
-            variant="contained"
-            color="primary"
-            className="bg-blue-900 flex rounded-full h-8 items-center px-2"
-          >
-            <PenBoxIcon className="w-4 h-4" />
-          </button>
-        </div>
-      ),
+      editable: false,
     },
+    {
+      field: "actions",
+      type: "actions",
+      headerName: "Actions",
+      width: 200,
+      cellClassName: "actions",
+      getActions: ({ id }) => {
+        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+
+        if (isInEditMode) {
+          return [
+            <GridActionsCellItem
+              icon={<SaveIcon />}
+              label="Save"
+              sx={{ color: "primary.main" }}
+              onClick={handleSaveClick(id)}
+            />,
+            <GridActionsCellItem
+              icon={<ExternalLinkIcon />}
+              label="Cancel"
+              className="textPrimary"
+              onClick={handleCancelClick(id)}
+              color="inherit"
+            />,
+          ];
+        }
+
+        return [
+          <GridActionsCellItem
+            icon={<EditIcon />}
+            label="Edit"
+            className="textPrimary"
+            onClick={handleEditClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem
+            icon={<Trash2 className="w-5 -h5 hover:text-red-700" />}
+            label="Delete"
+            onClick={() => handleDeleteClick(id)}
+            color="inherit"
+          />,
+        ];
+      },
+    },
+
   ];
 
   const handleCreateCategory = async (formData) => {
@@ -93,7 +156,7 @@ const Category = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDeleteClick = async (id) => {
     try {
       const res = await axios.delete(
         `http://localhost:3000/api/category/deleteCategory/${id}`
@@ -110,7 +173,82 @@ const Category = () => {
     }
   };
 
+  const handleEditClick = (id) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
+  };
 
+  const handleSaveClick = (id) => () => {
+ 
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+    
+  };
+
+  const handleCancelClick = (id) => () => {
+    setRowModesModel({
+      ...rowModesModel,
+      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+    });
+
+    const editedRow = rows.find((row) => row.id === id);
+    if (editedRow.isNew) {
+      setRows(rows.filter((row) => row.id !== id));
+    }
+  };
+
+  const processRowUpdate = async (newRow) => {
+    const updatedRow = { ...newRow, isNew: false };
+    setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
+    
+    await handleCategoryUpdateReq(updatedRow);
+    
+    return updatedRow;
+  };
+
+  const handleRowModesModelChange = (newRowModesModel) => {
+    setRowModesModel(newRowModesModel);
+  };
+
+  const handleRowEditStop = (params, event) => {
+    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
+      event.defaultMuiPrevented = true;
+    }
+  };
+
+  const handleCategoryUpdateReq = async (updatedRow) => {
+
+    const {id, col2} = updatedRow;
+ 
+
+    try {
+      const res = await axios.put(
+        `http://localhost:3000/api/category/updateCategory/${id}`, {name: col2},{
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        } 
+      );
+
+      if(res.data.success) {
+        showSuccessToast("Category updated successfully!");
+      } else {
+        showErrorToast("Failed to update category");
+      }
+
+      
+    
+    } catch (error) {
+      if (error.response) {
+        showErrorToast(error.response.data.message);
+      } else {
+        showErrorToast("An unexpected error server");
+      }
+      showErrorToast("server Error");
+      
+    }
+
+    
+  }
 
   if (error || !categories) {
     return (
@@ -141,7 +279,17 @@ const Category = () => {
             <DataGrid
               rows={rows}
               columns={columns}
-              className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
+              editMode="row"
+              rowModesModel={rowModesModel}
+              onRowModesModelChange={handleRowModesModelChange}
+              onRowEditStop={handleRowEditStop}
+              processRowUpdate={processRowUpdate}
+              onProcessRowUpdateError={(error) => {
+                console.error("Row update error:", error);
+                // Optionally, show an error toast notification
+                showErrorToast("Failed to update row.");
+              }}
+              className="rounded-lg border !border-gray-400 !text-gray-200"
               sx={{
                 // Style for cells
                 // "& .MuiDataGrid-cell": {
@@ -184,6 +332,7 @@ const Category = () => {
                   color: "#fff", // Color for pagination item text
                 },
               }}
+              // onCellEditStop={handleRowEditChange}
             />
           </div>
           {/* MODAL */}
