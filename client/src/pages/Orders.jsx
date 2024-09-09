@@ -106,9 +106,7 @@ const Orders = () => {
     };
   }, [cartItems]);
 
-  useEffect(() => {
-    console.log(cartItems);
-  }, [cartItems]);
+ 
 
   const handlePrintInvoice = async () => {
 

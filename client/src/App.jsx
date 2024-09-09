@@ -10,6 +10,7 @@ import Category from "./pages/Category";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
 import Sales from "./pages/Sales";
+import Users from './pages/Users';
 
 const theme = createTheme({
   palette: {
@@ -31,6 +32,7 @@ const App = () => {
           <Route path="/categories" element={<Category/>}/>
           <Route path="/products" element={<Products/>}/>
           <Route path="/sales" element={<Sales/>}/>
+          <Route path="/users" element={<Users/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,4 +1,4 @@
-import { Album, Archive,  BoxIcon,  BoxSelect,  BoxSelectIcon,  Clipboard,  ClipboardCheckIcon,  ClipboardList,  Icon,Menu, ShoppingBag, Sparkles } from "lucide-react";
+import { Album, Archive,  BoxIcon,   ClipboardCheckIcon,  ClipboardList,  Icon,Menu, ShoppingBag,   UserCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSidebarCollapsed } from "../redux/uiSetting/uiSettingsSlice";
 import { Link } from "react-router-dom";
@@ -48,6 +48,7 @@ const Sidebar = () => {
           <SidebarLink href="/categories" icon={ClipboardList} label="Categories" isCollapsed={isSidebarCollapsed}/>
           <SidebarLink href="/products" icon={BoxIcon} label="Products" isCollapsed={isSidebarCollapsed}/>
           <SidebarLink href="/sales" icon={Album} label="Sales" isCollapsed={isSidebarCollapsed}/>
+          <SidebarLink href="/users" icon={UserCircle} label="Users" isCollapsed={isSidebarCollapsed}/>
         </div>
 
         {/* footer */}
