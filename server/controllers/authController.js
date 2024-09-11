@@ -63,6 +63,15 @@ export const signin = async (req, res, next) => {
   }
 };
 
+export const signout = (req, res) => {
+  res.clearCookie("access_token", {
+    httpOnly: true
+
+
+  });
+  res.status(200).json({success: true, message: "Logged out successfully"});
+}
+
 export const getusers = async (req, res, next) => {
   try {
     const users = await prisma.user.findMany({

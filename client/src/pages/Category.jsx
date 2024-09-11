@@ -38,6 +38,14 @@ const Category = () => {
   const { categories, loading, error } = useSelector(
     (state) => state.categories
   );
+
+  const { currentUser } = useSelector(
+    (state) => state.user
+  );
+
+  const role = currentUser.rest.role;
+
+
   const dispatch = useDispatch();
   
 
@@ -266,13 +274,15 @@ const Category = () => {
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Categories</h1>
+            {role == "ADMIN" && (
             <button
               className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
               onClick={() => setIsModalOpen(true)}
             >
               <PlusCircleIcon className="w-5 h-5 mr-2" />
               Add Category
-            </button>
+            </button>)
+            }
           </div>
 
           <div style={{ width: "100%", maxWidth: "1000px" }} className="mt-8">

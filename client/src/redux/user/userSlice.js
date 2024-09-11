@@ -1,4 +1,6 @@
 import { createSlice} from "@reduxjs/toolkit";
+import axios from "axios";
+import { showErrorToast, showSuccessToast } from "../../components/ToastNotification";
 
 const initialState = {
     currentUser: null,
@@ -21,9 +23,15 @@ const userSlice = createSlice({
         signInFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
+        },
+        signOut: (state) => {
+            state.currentUser = null;
+            state.loading = false;
+            state.error = null;
         }
     }
 });
 
-export const { signInStart, signInSuccess, signInFailure} = userSlice.actions;
+export const { signInStart, signInSuccess, signInFailure, signOut} = userSlice.actions;
 export default userSlice.reducer;
+
