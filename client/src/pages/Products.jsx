@@ -68,8 +68,8 @@ const Products = () => {
 
   const handleCreateProduct = async (formData) => {
 
-    console.log(formData);
-    
+   
+   
 
     try {
       const res = await axios.post(
@@ -79,6 +79,7 @@ const Products = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
       const data = res.data;
@@ -116,15 +117,18 @@ const Products = () => {
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Products</h1>
-            { role == "ADMIN" && (<button
+            { role == "ADMIN" && (
+             <button
               className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
               onClick={() => setIsModalOpen(true)}
             >
               <PlusCircleIcon className="w-5 h-5 mr-2" />
               Add Product
-            </button>)
+            </button>
+            )
             
             }
+              
           </div>
 
           <div style={{ width: "100%" }} className="mt-8">

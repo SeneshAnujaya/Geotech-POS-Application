@@ -54,7 +54,8 @@ export const signin = async (req, res, next) => {
 
     const validPassword = bcryptjs.compareSync(password, validUser.password);
     if (!validPassword) return next(errorHandler(401, "Wrong Credentials!"));
-    const token = jwt.sign({id: validUser.id}, process.env.JWT_SECRET);
+  
+    const token = jwt.sign({id: validUser.id, role: validUser.role}, process.env.JWT_SECRET);
     const { password: pass, ...rest} = validUser;
 
     res.cookie('access_token', token, {httpOnly: true , maxAge: 43200000}).status(200).json({rest, success: true});

@@ -8,6 +8,7 @@ import authRouter from './routes/authRoute.js';
 import productsRouter from './routes/productsRoute.js';
 import categoryRouter from './routes/categoryRoute.js';
 import salesRouter from './routes/salesRoute.js';
+import userRouter from './routes/userRoute.js';
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/sales", salesRouter);
+app.use("/api/user", userRouter);
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000!');

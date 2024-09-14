@@ -17,12 +17,12 @@ const Users = () => {
   const getusers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:3000/api/auth/getusers');
+      const res = await axios.get('http://localhost:3000/api/user/getusers');
       
       if(res.data.success) {
         setLoading(false);
         const users = res.data.data;
-        setusers(users)
+        setusers(users);
       } else {
         showErrorToast("Failed to get users");
       }
@@ -89,6 +89,7 @@ const Users = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true
         }
       );
       const data = res.data;
@@ -98,18 +99,20 @@ const Users = () => {
         return;
       }
       setLoading(false);
+      getusers();
       showSuccessToast("Account created successfully!");
+
     } catch (error) {
       console.log(error);
       
       if (error.response) {
-        // Handle server-side errors
+   
         showErrorToast(error.response.data.message || "Server error");
       } else if (error.request) {
-        // Handle network errors
+       
         showErrorToast("Network error, please try again");
       } else {
-        // Handle other errors
+    
         showErrorToast("An unexpected error occurred");
       }
       setLoading(false);
