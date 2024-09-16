@@ -15,11 +15,8 @@ export const verifyToken = (req, res, next) => {
 export const isAdmin = (req, res, next) => {
   const token = req.cookies.access_token;
 
-  console.log(token);
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded.role);
     if (decoded.role !== "ADMIN") {
       return res
         .status(403)

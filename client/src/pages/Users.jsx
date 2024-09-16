@@ -1,42 +1,47 @@
-import React, { useEffect } from 'react';
-import MainLayout from '../components/MainLayout';
-import { useState } from 'react';
+import React, { useEffect } from "react";
+import MainLayout from "../components/MainLayout";
+import { useState } from "react";
 import axios from "axios";
-import { showErrorToast, showSuccessToast } from '../components/ToastNotification';
-import { PlusCircleIcon } from 'lucide-react';
 import {
-  DataGrid, GridActionsCellItem,
-} from "@mui/x-data-grid";
+  showErrorToast,
+  showSuccessToast,
+} from "../components/ToastNotification";
+import { PlusCircleIcon } from "lucide-react";
+import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import UserAddModal from "../components/UserAddModal";
+import DataTable from "../components/DataTable";
+import { useSelector } from "react-redux";
 
 const Users = () => {
   const [users, setusers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const { currentUser } = useSelector((state) => state.user);
+
+  const role = currentUser.rest.role;
+
   const getusers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:3000/api/user/getusers');
-      
-      if(res.data.success) {
+      const res = await axios.get("http://localhost:3000/api/user/getusers");
+
+      if (res.data.success) {
         setLoading(false);
         const users = res.data.data;
         setusers(users);
       } else {
         showErrorToast("Failed to get users");
       }
-
-          
-    } catch (error) {   
-      setLoading(false);   
+    } catch (error) {
+      setLoading(false);
       showErrorToast("server Error");
     }
-  }
+  };
 
   useEffect(() => {
     getusers();
-  },[]);
+  }, []);
 
   // DATA GRID ROWS COLUMNS
   const rows = users.map((user) => ({
@@ -55,11 +60,13 @@ const Users = () => {
       field: "col2",
       headerName: "Name",
       width: 200,
+      editable: (params) => params.row.id === editableRowId,
     },
     {
       field: "col3",
       headerName: "Email",
       width: 200,
+      editable: (params) => params.row.id === editableRowId,
     },
     {
       field: "col4",
@@ -76,8 +83,12 @@ const Users = () => {
       headerName: "UpdatedAt",
       width: 200,
     },
-
   ];
+
+  const tableApiEndpoints = {
+    delete: "http://localhost:3000/api/user/deleteuser",
+    update: "http://localhost:3000/api/user/updateuser",
+  };
 
   const handleCreateUser = async (formData) => {
     setLoading(true);
@@ -89,7 +100,7 @@ const Users = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: true
+          withCredentials: true,
         }
       );
       const data = res.data;
@@ -101,24 +112,19 @@ const Users = () => {
       setLoading(false);
       getusers();
       showSuccessToast("Account created successfully!");
-
     } catch (error) {
       console.log(error);
-      
+
       if (error.response) {
-   
         showErrorToast(error.response.data.message || "Server error");
       } else if (error.request) {
-       
         showErrorToast("Network error, please try again");
       } else {
-    
         showErrorToast("An unexpected error occurred");
       }
       setLoading(false);
     }
-  }
-
+  };
 
   return (
     <MainLayout>
@@ -129,63 +135,26 @@ const Users = () => {
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Users</h1>
-            <button
-              className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <PlusCircleIcon className="w-5 h-5 mr-2" />
-              Add user
-            </button>
+            {role == "ADMIN" && (
+              <button
+                className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <PlusCircleIcon className="w-5 h-5 mr-2" />
+                Add user
+              </button>
+            )}
           </div>
 
-          <div style={{ width: "100%", maxWidth:"1200px" }} className="mt-8">
-            <DataGrid
-              rows={rows}
-              columns={columns}
-              className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
-              sx={{
-                // Style for cells
-                // "& .MuiDataGrid-cell": {
-                //   color: "#fff", // Text color for cells
-                // },
-                // Style for column headers
-                "& .MuiDataGrid-columnHeaders": {
-                  backgroundColor: "transparent", // Background color for header
-                  color: "#fff", // Text color for header
-                },
-                // Style for virtual scroller (rows area)
-                "& .MuiDataGrid-virtualScroller": {
-                  backgroundColor: "transparent", // Background color for rows
-                },
-                // Style for footer container
-                "& .MuiDataGrid-footerContainer": {
-                  backgroundColor: "transparent", // Background color for footer
-                },
-                // Style for footer cells
-                "& .MuiDataGrid-footerCell": {
-                  color: "#fff", // Text color for footer cells
-                },
-                // Style for toolbar container
-                "& .MuiDataGrid-toolbarContainer": {
-                  backgroundColor: "transparent", // Background color for toolbar
-                },
-                // Style for checkbox color
-                "& .MuiCheckbox-root": {
-                  color: "#fff", // Checkbox color
-                },
-                // Style for icons (like pagination and filtering icons)
-                "& .MuiDataGrid-iconSeparator": {
-                  color: "#fff", // Color for separator icon
-                },
-                "& .MuiDataGrid-iconButton": {
-                  color: "#fff", // Color for icon buttons (e.g., pagination controls)
-                },
-                // Style for pagination controls
-                "& .MuiPaginationItem-root": {
-                  color: "#fff", // Color for pagination item text
-                },
-              }}
-            />
+          <div>
+            <div className="w-full max-w-[1400px] mt-8">
+              <DataTable
+                rows={rows}
+                columns={columns}
+                apiEndpoints={tableApiEndpoints}
+                role={role}
+              />
+            </div>
           </div>
           {/* MODAL */}
           <UserAddModal
@@ -196,7 +165,7 @@ const Users = () => {
         </div>
       )}
     </MainLayout>
-  )
-}
+  );
+};
 
-export default Users
+export default Users;

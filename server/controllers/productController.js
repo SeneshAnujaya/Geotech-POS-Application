@@ -103,3 +103,42 @@ export const updateProductsStock = async (req, res) => {
     console.error("Error updating stock:", error);
   }
 };
+
+// Update Product
+export const updateProduct = async (req, res) => {
+  const {sku} = req.params;
+
+  const {} = req.body;
+}
+
+// Delete Product
+export const deleteProduct = async (req, res) => {
+  const { sku } = req.params;
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { sku: sku },
+    });
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    await prisma.product.delete({
+      where: { sku: sku },
+    });
+
+    res
+      .status(200)
+      .json({ success: true, message: "Product deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Error deleting product!" });
+    console.error(error);
+  }
+};
+
+/
