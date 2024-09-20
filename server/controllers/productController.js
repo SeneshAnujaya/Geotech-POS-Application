@@ -32,6 +32,13 @@ export const addProduct = async (req, res, next) => {
   }
 
   try {
+    const existingProduct = await prisma.product.findUnique({
+      where: { sku: sku}
+    });
+
+    if(existingProduct) {
+      return res.status(400).json({ success: false, message: "SKU already exists" });
+    }
     const newProduct = await prisma.product.create({
       data: {
         sku,
@@ -108,8 +115,46 @@ export const updateProductsStock = async (req, res) => {
 export const updateProduct = async (req, res) => {
   const {sku} = req.params;
 
-  const {} = req.body;
+  const {col2: name, description, col3:costPrice, col4:retailPrice,col5: quantity, col6:brandName, col8: warrantyPeriod} = req.body;
+
+  if(!sku) {
+    return res.status(400).json({success: false, message: "SKU is required"});
+  }
+
+  if(!name && !description && !costPrice && !retailPrice && !quantity && !brandName && !warrantyPeriod) {
+    return res.status(400).json({success: false, message: "At least one field must be provided for update"});
+  }
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { sku: sku}
+    })
+
+    if(!product) {
+      return res.status(400).json({success: false, message: "Product not found"});
+    }
+
+ 
+    const updatedProduct = await prisma.product.update({
+      where: {sku: sku},
+      data: {
+        name: name || product.name,
+        costPrice: costPrice !== undefined ? parseFloat(costPrice) : product.costPrice,
+        retailPrice: retailPrice !== undefined ? parseFloat(retailPrice) : product.retailPrice,
+        quantity: quantity !== undefined ? parseFloat(quantity) : product.quantity,
+        brandName: brandName || product.brandName,
+        warrantyPeriod: warrantyPeriod || product.warrantyPeriod,
+      }
+    })
+
+    res.status(200).json({success: true, message: "Product updated successfully!", data: updatedProduct})
+  } catch (error) {
+    res.status(500).json({success: false, message: "Error updating product"});
+  }
+
 }
+
+
 
 // Delete Product
 export const deleteProduct = async (req, res) => {
@@ -137,8 +182,7 @@ export const deleteProduct = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Error deleting product!" });
-    console.error(error);
   }
 };
 
-/
+

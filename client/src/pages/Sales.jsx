@@ -90,7 +90,7 @@ const Sales = () => {
             <h1 className="text-2xl font-semibold">Sale Records</h1>
           </div>
 
-          <div style={{ width: "100%", maxWidth: "1300px" }} className="mt-8">
+          <div style={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
             <DataGrid
               rows={rows}
               columns={columns}

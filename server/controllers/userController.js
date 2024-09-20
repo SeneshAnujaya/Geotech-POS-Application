@@ -52,10 +52,10 @@ export const deleteuser = async (req, res) => {
   }
 };
 
-// Edit Category
+// Update User
 export const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { name, email } = req.body;
+  const { col2: name, col3: email } = req.body;
 
   try {
     const user = await prisma.user.findUnique({

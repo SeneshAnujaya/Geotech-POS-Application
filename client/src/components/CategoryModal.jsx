@@ -6,16 +6,27 @@ const CategoryModal = ({ isOpen, onClose, onCreate }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onCreate(formData);
-    onClose();
+    // onClose();
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, files } = e.target;
+
+    if(name === "categoryPic") {
+      setFormData({
+        ...formData,
+        categoryPic : files[0],
+      }); 
+    } else {
     setFormData({
       ...formData,
       [name]: value,
     });
+  }
   };
+
+ 
+  
 
   if (!isOpen) return null;
 
@@ -41,6 +52,24 @@ const CategoryModal = ({ isOpen, onClose, onCreate }) => {
             onChange={handleChange}
             required
           />
+           <label
+            htmlFor="categoryPic"
+            className="block text-sm font-medium text-gray-300"
+          >
+            Category Image
+          </label>
+          <input 
+            type="file" 
+            name="categoryPic"
+            accept="image/*" 
+            className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-white"
+            onChange={handleChange} 
+          />
+          {/* {percentage >! 0 && (
+            <div className="w-full bg-[f3f3f3] my-3">
+              <div>{percentage}%</div>
+            </div>
+          )} */}
           <button
             type="submit"
             className="mt-2 px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700"

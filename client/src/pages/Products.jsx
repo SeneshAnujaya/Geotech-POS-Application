@@ -49,7 +49,7 @@ const Products = () => {
   }));
 
   const columns = [
-    { field: "col1", headerName: "SKU", width: 130,  editable: (params) => params.row.id === editableRowId },
+    { field: "col1", headerName: "SKU", width: 130, },
     { field: "col2", headerName: "Name", width: 180,  editable: (params) => params.row.id === editableRowId },
     { field: "col3", headerName: "Cost Price - LKR", width: 130,  editable: (params) => params.row.id === editableRowId },
     { field: "col4", headerName: "Retail Price - LKR", width: 130,  editable: (params) => params.row.id === editableRowId },
@@ -96,7 +96,7 @@ const Products = () => {
 
   const tableApiEndpoints = {
     delete: "http://localhost:3000/api/products/delete",
-    // update: "http://localhost:3000/api/user/updateuser",
+    update: "http://localhost:3000/api/products/updateproduct",
   };
 
   if (error || !products) {

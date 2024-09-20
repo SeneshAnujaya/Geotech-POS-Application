@@ -147,7 +147,7 @@ const Users = () => {
           </div>
 
           <div>
-            <div className="w-full max-w-[1400px] mt-8">
+            <div className="w-full max-w-fit mt-8">
               <DataTable
                 rows={rows}
                 columns={columns}

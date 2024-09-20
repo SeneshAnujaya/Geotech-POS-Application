@@ -1,31 +1,43 @@
 import { PrismaClient } from "@prisma/client";
+import { upload } from "../utils/file_upload.js";
 
 const prisma = new PrismaClient();
 
 // Add Category
 export const addCategory = async (req, res, next) => {
-  const { name } = req.body;
+  // Handle file upload
+  upload.single("categoryPic")(req, res, async (err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: "File upload error" });
+    }
 
-  if (!name) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Category Name is required" });
-  }
+    const { name } = req.body;
 
-  try {
-    const newCategory = await prisma.category.create({
-      data: {
-        name,
-      },
-    });
+    if (!name) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Category Name is required" });
+    }
 
-    res.status(201).json({ success: true, data: newCategory });
-  } catch (error) {
-    console.error("Error adding product:", error);
-    next(error);
-  }
+    try {
+      const categoryPic = req.file ? req.file.filename : null;
+
+      const newCategory = await prisma.category.create({
+        data: {
+          name,
+          categoryPic,
+        },
+      });
+
+      res.status(201).json({ success: true, data: newCategory });
+    } catch (error) {
+      console.error("Error adding category:", error);
+      next(error); 
+    }
+  });
 };
-
 
 // Get All Categories
 export const getAllCategories = async (req, res) => {
@@ -38,7 +50,6 @@ export const getAllCategories = async (req, res) => {
       .json({ success: false, message: "Error fetching categories" });
   }
 };
-
 
 // Delete Category
 export const deleteCategory = async (req, res) => {
@@ -54,7 +65,10 @@ export const deleteCategory = async (req, res) => {
     if (relatedProducts.length > 0) {
       return res
         .status(400)
-        .json({ success: false, message: "Cannot delete category have products." });
+        .json({
+          success: false,
+          message: "Cannot delete category have products.",
+        });
     }
 
     const category = await prisma.category.findUnique({
@@ -68,7 +82,7 @@ export const deleteCategory = async (req, res) => {
     }
 
     await prisma.category.delete({
-        where: {categoryId: Number(id)},
+      where: { categoryId: Number(id) },
     });
 
     res
@@ -84,22 +98,27 @@ export const deleteCategory = async (req, res) => {
 
 // Edit Category
 export const updateCategory = async (req, res) => {
-  const {id} = req.params;
-  const {name} = req.body;
+  const { id } = req.params;
+  const { name } = req.body;
 
   try {
     const updatedCategory = await prisma.category.update({
-      where: {categoryId: parseInt(id)},
-      data: { name }
+      where: { categoryId: parseInt(id) },
+      data: { name },
     });
 
-    if(updateCategory) {
+    if (updateCategory) {
       res
-      .status(200)
-      .json({ success: true, message: "Category updated successfully", data:updateCategory });
+        .status(200)
+        .json({
+          success: true,
+          message: "Category updated successfully",
+          data: updateCategory,
+        });
     }
-  
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error updating category" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error updating category" });
   }
-}
+};

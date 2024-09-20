@@ -236,7 +236,7 @@ const Orders = () => {
                     className="border bg-slate-900 border-slate-700 rounded-md p-4 w-100 max-w-56 flex flex-col justify-between"
                   >
                     <img
-                      src={MouseImage}
+                      src={`http://localhost:3000/uploads/${product.category.categoryPic}`}
                       alt="product-pic"
                       className="w-100 h-100 rounded"
                     />

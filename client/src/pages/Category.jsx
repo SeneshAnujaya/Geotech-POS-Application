@@ -35,6 +35,8 @@ const Category = () => {
   const [rowModesModel, setRowModesModel] = useState({});
   const [rows, setRows] = useState([]);
 
+  // const [uploadPercentage, setUploadPercentage] = useState(0);
+
   const { categories, loading, error } = useSelector(
     (state) => state.categories
   );
@@ -43,7 +45,7 @@ const Category = () => {
     (state) => state.user
   );
 
-  const role = currentUser.rest.role;
+  const role = currentUser.rest.role || 'EMPLOYEE';
 
 
   const dispatch = useDispatch();
@@ -72,6 +74,9 @@ const Category = () => {
   //   col3: new Date(category.createdAt).toLocaleString(),
   // }));
 
+  
+  
+
   const columns = [
     { field: "col1", headerName: "Id", width: 200, editable: false },
     {
@@ -87,15 +92,21 @@ const Category = () => {
       editable: true,
       editable: false,
     },
+];
+
+if(role === "ADMIN") {
+  columns.push(
     {
       field: "actions",
       type: "actions",
       headerName: "Actions",
       width: 200,
       cellClassName: "actions",
+      hide: role !== "ADMIN", 
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
 
+        if(role === "ADMIN") {
         if (isInEditMode) {
           return [
             <GridActionsCellItem
@@ -113,6 +124,7 @@ const Category = () => {
             />,
           ];
         }
+      
 
         return [
           <GridActionsCellItem
@@ -129,22 +141,39 @@ const Category = () => {
             color="inherit"
           />,
         ];
+      }
+      return [];
       },
     },
+  )
+}
 
-  ];
+
 
   const handleCreateCategory = async (formData) => {
+
+    const formDataObj = new FormData();
+    formDataObj.append("name", formData.name);
+    formDataObj.append("categoryPic", formData.categoryPic);
+
+  
+    
+    
     try {
       const res = await axios.post(
         "http://localhost:3000/api/category/add",
-        formData,
+        formDataObj,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":"multipart/form-data"
           },
           withCredentials: true,
-        }
+          // onUploadProgress: (progressEvent) => {
+          //   const percentage= Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          //   setUploadPercentage(percentage);
+          // }
+        },
+       
       );
       const data = res.data;
       if (!data.success) {
@@ -152,8 +181,10 @@ const Category = () => {
         return;
       }
       showSuccessToast("Category created successfully!");
+      // setUploadPercentage(0);
       dispatch(fetchCategories());
     } catch (error) {
+      // setUploadPercentage(0);
       if (error.response) {
         showErrorToast(error.response.data.message || "Server error");
       } else if (error.request) {
@@ -163,6 +194,9 @@ const Category = () => {
       }
     }
   };
+
+  // console.log(uploadPercentage);
+  
 
   const handleDeleteClick = async (id) => {
     try {
@@ -295,7 +329,7 @@ const Category = () => {
            
           </div>
 
-          <div style={{ width: "100%", maxWidth: "1000px" }} className="mt-8">
+          <div style={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
             <DataGrid
               rows={rows}
               columns={columns}
@@ -360,6 +394,7 @@ const Category = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onCreate={handleCreateCategory}
+       
           />
         </div>
       )}

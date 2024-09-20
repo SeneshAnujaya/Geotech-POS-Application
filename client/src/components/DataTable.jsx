@@ -80,12 +80,17 @@ const DataTable = ({ rows, columns, apiEndpoints, role }) => {
   };
 
   const handleUpdateRowReq = async (updatedRow) => {
-    const { id, col2, col3 } = updatedRow;
+    const updatedData = {};
+    columns.forEach((col) => {
+      if(col.editable) updatedData[col.field] = updatedRow[col.field];
+    });    
+
+    const { id } = updatedRow;
 
     try {
       const res = await axios.put(
         `${apiEndpoints.update}/${id}`,
-        { name: col2, email: col3 },
+        updatedData,
         {
           headers: {
             "Content-Type": "application/json",
@@ -100,6 +105,8 @@ const DataTable = ({ rows, columns, apiEndpoints, role }) => {
         showErrorToast("Failed to update row");
       }
     } catch (error) {
+      console.log(error);
+      
       if (error.response) {
         showErrorToast(error.response.data.message);
       } else if (error.request) {
