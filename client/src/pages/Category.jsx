@@ -35,7 +35,7 @@ const Category = () => {
   const [rowModesModel, setRowModesModel] = useState({});
   const [rows, setRows] = useState([]);
 
-  // const [uploadPercentage, setUploadPercentage] = useState(0);
+  const [uploadPercentage, setUploadPercentage] = useState(0);
 
   const { categories, loading, error } = useSelector(
     (state) => state.categories
@@ -60,8 +60,9 @@ const Category = () => {
       const updatedRows = categories.map((category) => ({
         id: category.categoryId,
         col1: category.categoryId,
-        col2: category.name,
-        col3: new Date(category.createdAt).toLocaleString(),
+        col2: category.categoryPic,
+        col3: category.name,
+        col4: new Date(category.createdAt).toLocaleString(),
       }));
       setRows(updatedRows);
     }
@@ -78,15 +79,26 @@ const Category = () => {
   
 
   const columns = [
-    { field: "col1", headerName: "Id", width: 200, editable: false },
+    { field: "col1", headerName: "Id", width: 100, editable: false },
     {
       field: "col2",
+      headerName: "Image",
+      width: 200,
+      renderCell: (params) => (
+        <div className="py-3">
+        <img src={`http://localhost:3000/uploads/${params.value}`} alt="category-pic" style={{width: '50px', height:'50px', borderRadius:'50%', objectFit:"cover"}}/>
+        </div>
+    ),
+      // editable: (params) => params.row.id === editableRowId,
+    },
+    {
+      field: "col3",
       headerName: "Category",
       width: 200,
       editable: (params) => params.row.id === editableRowId,
     },
     {
-      field: "col3",
+      field: "col4",
       headerName: "CreatedAt",
       width: 200,
       editable: true,
@@ -168,10 +180,10 @@ if(role === "ADMIN") {
             "Content-Type":"multipart/form-data"
           },
           withCredentials: true,
-          // onUploadProgress: (progressEvent) => {
-          //   const percentage= Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          //   setUploadPercentage(percentage);
-          // }
+          onUploadProgress: (progressEvent) => {
+            const percentage= Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadPercentage(percentage);
+          }
         },
        
       );
@@ -181,10 +193,11 @@ if(role === "ADMIN") {
         return;
       }
       showSuccessToast("Category created successfully!");
-      // setUploadPercentage(0);
+      setUploadPercentage(0);
       dispatch(fetchCategories());
+      setIsModalOpen(false);
     } catch (error) {
-      // setUploadPercentage(0);
+      setUploadPercentage(0);
       if (error.response) {
         showErrorToast(error.response.data.message || "Server error");
       } else if (error.request) {
@@ -192,6 +205,7 @@ if(role === "ADMIN") {
       } else {
         showErrorToast("An unexpected error occurred");
       }
+      setIsModalOpen(false);
     }
   };
 
@@ -262,12 +276,11 @@ if(role === "ADMIN") {
 
   const handleCategoryUpdateReq = async (updatedRow) => {
 
-    const {id, col2} = updatedRow;
+    const {id, col3} = updatedRow;
  
-
     try {
       const res = await axios.put(
-        `http://localhost:3000/api/category/updateCategory/${id}`, {name: col2},{
+        `http://localhost:3000/api/category/updateCategory/${id}`, {name: col3},{
           headers: {
             "Content-Type": "application/json",
           },
@@ -385,7 +398,13 @@ if(role === "ADMIN") {
                 "& .MuiPaginationItem-root": {
                   color: "#fff", // Color for pagination item text
                 },
+                '& .MuiDataGrid-cell': {
+                  display: "flex",
+                  alignItems: "center"
+                },
+              
               }}
+              getRowHeight={() => 'auto'}
               // onCellEditStop={handleRowEditChange}
             />
           </div>
@@ -394,7 +413,7 @@ if(role === "ADMIN") {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onCreate={handleCreateCategory}
-       
+            percentage={uploadPercentage}
           />
         </div>
       )}

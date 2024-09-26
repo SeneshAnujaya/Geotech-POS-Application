@@ -238,7 +238,7 @@ const Orders = () => {
                     <img
                       src={`http://localhost:3000/uploads/${product.category.categoryPic}`}
                       alt="product-pic"
-                      className="w-100 h-100 rounded"
+                      className="w-100 h-100 rounded h-32 object-cover"
                     />
                     <h4 className="font-medium mt-2 leading-5">
                       {product.name}

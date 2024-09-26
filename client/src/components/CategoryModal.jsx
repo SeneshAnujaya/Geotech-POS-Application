@@ -1,12 +1,11 @@
 import { useState } from "react";
 
-const CategoryModal = ({ isOpen, onClose, onCreate }) => {
+const CategoryModal = ({ isOpen, onClose, onCreate, percentage }) => {
   const [formData, setFormData] = useState({});
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onCreate(formData);
-    // onClose();
   };
 
   const handleChange = (e) => {
@@ -65,11 +64,11 @@ const CategoryModal = ({ isOpen, onClose, onCreate }) => {
             className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-white"
             onChange={handleChange} 
           />
-          {/* {percentage >! 0 && (
+          {percentage >! 0 && (
             <div className="w-full bg-[f3f3f3] my-3">
-              <div>{percentage}%</div>
+              <div>Uploading image {percentage}%</div>
             </div>
-          )} */}
+          )}
           <button
             type="submit"
             className="mt-2 px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700"

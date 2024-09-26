@@ -22,6 +22,18 @@ export const addCategory = async (req, res, next) => {
     }
 
     try {
+
+      const existingCategory = await prisma.category.findUnique({
+        where: { name },
+      });
+
+      if (existingCategory) {
+        return res.status(400).json({
+          success: false,
+          message: "Category with this name already exists",
+        });
+      }
+      
       const categoryPic = req.file ? req.file.filename : null;
 
       const newCategory = await prisma.category.create({
