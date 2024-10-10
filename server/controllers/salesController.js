@@ -76,4 +76,29 @@ export const getAllSales = async (req, res) => {
     }
 }
 
+export const getTotalRevenue = async (req, res) => {
+    try {
+        const totalRevenue = await prisma.sale.aggregate({
+            _sum: {
+                totalAmount: true,
+            }
+        });
+
+        res.status(200).json({success: true, totalRevenue: totalRevenue._sum.totalAmount || 0});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Failed to calculate total revenue' });
+    }
+}
+
+export const getSalesCount = async (req, res) => {
+    try {
+       const totalSalesCount = await prisma.sale.count();
+       
+       res.status(200).json({ success: true, totalSalesCount});
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to get total sale count' })   
+    }
+}
+
 
