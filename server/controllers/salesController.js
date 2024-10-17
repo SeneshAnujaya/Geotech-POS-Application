@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import {startOfDay, endOfDay, startOfMonth, endOfMonth} from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -97,7 +98,62 @@ export const getSalesCount = async (req, res) => {
        
        res.status(200).json({ success: true, totalSalesCount});
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Failed to get total sale count' })   
+        res.status(500).json({ success: false, message: 'Failed to get total sales count' })   
+    }
+}
+
+export const getDailyRevenue = async (req, res) => {
+    try {
+        const today = new Date();
+        const salesToday = await prisma.sale.findMany({
+            where: {
+                createdAt: {
+                    gte: startOfDay(today),
+                    lte: endOfDay(today)
+                }
+            }
+        });
+
+        const dailyRevenue = salesToday.reduce((total, sale) => total + sale.totalAmount, 0); 
+        
+        
+
+        res.status(200).json({ success: true, dailyRevenue: Number(dailyRevenue).toFixed(2)});
+    } catch (error) {
+        console.error('Error getting daily revenue:', error);
+        res.status(500).json({
+          success: false,
+          message: 'Error getting daily revenue',
+        });
+    }
+}
+
+export const getMonthlySaleCount = async (req, res) => {
+    try {
+       const today = new Date();
+       
+       const monthStart = startOfMonth(today);
+       const monthEnd = endOfMonth(today);
+
+       const salesThisMonth = await prisma.sale.count({
+        where: {
+            createdAt: {
+                gte: monthStart,
+                lte: monthEnd
+            }
+        }
+       });
+
+       res.status(200).json({
+        success: true,
+        monthlySalesCount: salesThisMonth,
+    });
+    } catch (error) {
+        console.error('Error getting monthly sales count:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error getting monthly sales count',
+        }) 
     }
 }
 

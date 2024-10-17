@@ -57,6 +57,9 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const [salesData, setSalesData] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalSalesCount, setTotalSalesCount] = useState(0);
+  const [dailyRevenue, setDailyRevenue] = useState(0);
+  const [monthlySaleCount, setMonthlySaleCount] = useState(0);
 
   useEffect(() => {
     dispatch(fetchSales());
@@ -73,13 +76,13 @@ const Dashboard = () => {
   }, [sales]);
 
   // Sales data for datagrid
-  const rows = sales.map((sale) => ({
+  const rows =  [...sales].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15).map((sale) => ({
     id: sale.saleId,
     col1: sale.saleId,
     col2: sale.buyerName,
     col3: sale.totalAmount,
     col4: sale.user.name,
-    col5: new Date(sale.createdAt).toLocaleString(),
+    col5: new Date(sale.createdAt),
   }));
 
   const columns = [
@@ -87,7 +90,12 @@ const Dashboard = () => {
     { field: "col2", headerName: "Customer", width: 160 },
     { field: "col3", headerName: "Total", width: 150 },
     { field: "col4", headerName: "Cashier", width: 100 },
-    { field: "col5", headerName: "Created At", width: 200 },
+    { field: "col5", headerName: "Created At", width: 200, type: "date", valueFormatter: (params) => {
+      const date = params;
+      return date ? date.toLocaleString() : "N/A"
+      
+      
+    }},
     {
       field: "col6",
       headerName: "State",
@@ -107,23 +115,77 @@ const Dashboard = () => {
     },
   ];
 
+  const sortModel = [
+    {
+      field: 'col5', // Replace with your date field name
+      sort: 'desc',       // Sort in descending order
+    },
+  ];
+
+  const fetchTotalRevenue = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/sales/getTotalRevenue`);
+      if(response.data.success) {
+        setTotalRevenue(response.data.totalRevenue);
+      } else {
+        console.error("Failed to fetch total revenue");
+      }
+    } catch (error) {
+      console.error("Error fetching total revenue:", error);
+    }
+  } 
+
+  const fetchTotalSales = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/sales/getTotalSales`);
+      if(response.data.success) {
+        setTotalSalesCount(response.data.totalSalesCount);
+      } else {
+        console.error("Failed to fetch total sales");
+      }
+    } catch (error) {
+      console.error("Error fetching total sales:", error);
+    }
+  }
+
+  const fetchDailyRevenue = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/sales/getDailyRevenue`);
+      if(response.data.success) {
+        
+        setDailyRevenue(response.data.dailyRevenue);
+      } else {
+        console.error("Failed to fetch Daily Revenue");
+      }
+    } catch (error) {
+      console.error("Error fetching Daily Revenue:", error);
+    }
+  }
+
+  const fetchMonthlySaleCount = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/sales/getMonthlySaleCount`);
+      if(response.data.success) {
+        setMonthlySaleCount(response.data.monthlySalesCount);
+      } else {
+        console.error("Failed to fetch Daily Revenue");
+      }
+    } catch (error) {
+      console.error("Error fetching Daily Revenue:", error);
+    }
+  }
+
+
+
+
+
+
   // Get Total revenue
   useEffect(() => {
-    const fetchTotalRevenue = async () => {
-      try {
-        const response = await axios.get(`http://localhost:3000/api/sales/getTotalRevenue`);
-        if(response.data.success) {
-          setTotalRevenue(response.data.totalRevenue);
-        } else {
-          console.error("Failed to fetch total revenue");
-        }
-      } catch (error) {
-        console.error("Error fetching total revenue:", error);
-      }
-    } 
     fetchTotalRevenue();
-    console.log(totalRevenue);
-    
+    fetchTotalSales();
+    fetchDailyRevenue();
+    fetchMonthlySaleCount();
   },[])
 
   return (
@@ -140,17 +202,17 @@ const Dashboard = () => {
           />
           <IconCard
             icon={<CircleDollarSign className="w-9 h-9 text-blue-400" />}
-            amount="10,243,00"
+            amount={dailyRevenue}
             title="Daily Revenue"
           />
           <IconCard
             icon={<ChartNoAxesCombined className="w-9 h-9 text-blue-400" />}
-            amount="3478"
+            amount={totalSalesCount}
             title="Total Sales"
           />
           <IconCard
             icon={<ChartLine className="w-9 h-9 text-blue-400" />}
-            amount="3478"
+            amount={monthlySaleCount}
             title="Monthly Sales"
           />
         </div>
@@ -163,6 +225,7 @@ const Dashboard = () => {
                 rows={rows}
                 columns={columns}
                 className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
+                sortModel={sortModel}
                 sx={{
                   // Style for cells
                   // "& .MuiDataGrid-cell": {

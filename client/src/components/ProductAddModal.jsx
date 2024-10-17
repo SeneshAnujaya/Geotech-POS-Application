@@ -126,7 +126,23 @@ const ProductAddModal = ({ isOpen, onClose, onCreate }) => {
             onChange={handleChange}
             required
           />
-
+           <label
+            htmlFor="quantity"
+            className="block text-sm font-medium text-gray-300"
+          >
+            Wholesale Price
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            name="wholesalePrice"
+            placeholder="Wholesale Price..."
+            value={formData.value}
+            className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
+            onChange={handleChange}
+            required
+          />
           <label
             htmlFor="quantity"
             className="block text-sm font-medium text-gray-300"

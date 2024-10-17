@@ -34,6 +34,7 @@ const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [billingName, setBillingName] = useState("");
+  const [isBulkBuyer, setIsBulkBuyer] = useState(false);
 
   const {
     categories,
@@ -91,6 +92,11 @@ const Orders = () => {
   const handleDecreaseQuantity = (sku) => {
     dispatch(decreaseItemQuantity({ sku }));
   };
+
+  // Handle Buyer Type
+  const handleBuyerTypeChange = (e) => {
+    setIsBulkBuyer(e.target.value === "wholesale")
+  }
 
   // Calculate Totals
   const { subTotal, total } = useMemo(() => {
@@ -361,6 +367,20 @@ const Orders = () => {
           </div>
           {/* Payement summary */}
           <div className="border mt-4  border-slate-700 rounded-md bg-slate-900 p-3">
+          {/* Customer Type  */}
+          <p className="text-[0.95rem] text-slate-200 font-semibold">
+              Customer Type
+            </p>
+            <div className="mt-2.5 mb-3 flex gap-4 items-center">
+              <label className="text-slate-300 text-[0.9rem]">
+                <input type="radio" value="regular" checked={!isBulkBuyer} className="appearance-none h-3 w-3 rounded-full border border-gray-300 checked:bg-blue-500 checked:border-transparent focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-blue-500 mr-2 cursor-pointer" onChange={handleBuyerTypeChange}/>
+                Regular
+              </label>
+              <label className="text-slate-300 text-[0.9rem]">
+                <input type="radio" value="wholesale" checked={isBulkBuyer} className="appearance-none h-3 w-3 rounded-full border border-gray-300 checked:bg-blue-500 checked:border-transparent focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-blue-500 mr-2 cursor-pointer" onChange={handleBuyerTypeChange}/>
+                Wholesale
+              </label>
+            </div>
             <p className="text-[0.95rem] text-slate-200 font-semibold">
               Payment Summary
             </p>

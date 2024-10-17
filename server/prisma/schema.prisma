@@ -46,6 +46,7 @@ model Product {
   description String?
   costPrice   Decimal   @db.Decimal(10, 2)
   retailPrice Decimal   @db.Decimal(10, 2)
+  wholesalePrice Decimal? @db.Decimal(10, 2)
   quantity    Int
   brandName   String
   categoryId  Int
