@@ -60,7 +60,7 @@ const Sales = () => {
       name: item.product.name,
       warrantyPeriod: item.product.warrantyPeriod,
       cartQuantity: item.quantity,
-      retailPrice: item.price,
+      price: item.price,
     }));
 
     const total = parseFloat(selectSaleRecord.totalAmount);

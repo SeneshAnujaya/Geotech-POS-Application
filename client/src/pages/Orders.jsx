@@ -102,7 +102,7 @@ const Orders = () => {
   const { subTotal, total } = useMemo(() => {
     let subTotal = 0;
     cartItems.forEach((item) => {
-      subTotal += item.cartQuantity * parseFloat(item.retailPrice);
+      subTotal += item.cartQuantity * (isBulkBuyer ? parseFloat(item.wholesalePrice) :  parseFloat(item.retailPrice));
     });
 
     const total = subTotal;
@@ -110,7 +110,7 @@ const Orders = () => {
       subTotal: subTotal.toFixed(2),
       total: total.toFixed(2),
     };
-  }, [cartItems]);
+  }, [cartItems, isBulkBuyer]);
 
  
 
@@ -126,7 +126,7 @@ const Orders = () => {
       sku: item.sku,
       productId: item.productId,
       cartQuantity: item.cartQuantity,
-      price: item.retailPrice
+      price: isBulkBuyer ? item.wholesalePrice: item.retailPrice
 
     }));
 
@@ -142,33 +142,42 @@ const Orders = () => {
  
 
     try {
-     const res = await axios.post('http://localhost:3000/api/products/updatestock', {stockUpdates: updatedStockProduct});
+    //  const res = await axios.post('http://localhost:3000/api/products/updatestock', {stockUpdates: updatedStockProduct});
+       const res = await axios.post('http://localhost:3000/api/sales/createSaleRecordWithStockUpdate', {
+        userId : currentUserId,
+        items: itemsToRecord,
+        buyerName: billingName
+       });
 
-     if(res.status === 200 && res.data.success) {
-      showSuccessToast('Stock Updated!');
+     if(res.status === 201 && res.data.success) {
+      showSuccessToast('Sale and stock updated successfully!');
   
-      generatePDF(cartItems, total, currentUserName, billingName, dispatch, setBillingName);
+      generatePDF(cartItems.map(item => ({
+        ...item,
+        price: isBulkBuyer ? item.wholesalePrice : item.retailPrice  // Ensure correct price for each item
+      })), total, currentUserName, billingName, dispatch, setBillingName);
+      // generatePDF(cartItems, total, currentUserName, billingName, dispatch, setBillingName);
       dispatch(fetchProducts());   
      } else {
       showErrorToast("Failed to update stock!")
      }
 
     //  create Sale record request
-    const saleRes = await axios.post("http://localhost:3000/api/sales/createSaleRecord", {
-      userId : currentUserId,
-      items: itemsToRecord,
-      buyerName: billingName
-    })
+    // const saleRes = await axios.post("http://localhost:3000/api/sales/createSaleRecord", {
+    //   userId : currentUserId,
+    //   items: itemsToRecord,
+    //   buyerName: billingName
+    // })
 
-    if(saleRes.status === 201 && saleRes.data.success){
-      showSuccessToast("Sale recorded successfully!");
-    } else {
-      showErrorToast("Failed to add sale record!");
-    }
+    // if(saleRes.status === 201 && saleRes.data.success){
+    //   showSuccessToast("Sale recorded successfully!");
+    // } else {
+    //   showErrorToast("Failed to add sale record!");
+    // }
      
     } catch (error) {
       console.log(error);
-      showErrorToast("Failed update stock. Please try again.");
+      showErrorToast("Failed update stock & sale. Please try again.");
       
     }
     
@@ -333,7 +342,7 @@ const Orders = () => {
                           {item.name}
                         </h4>
                         <p className="text-[0.9rem] text-slate-300 mt-1">
-                          LKR {parseFloat(item.retailPrice)}
+                          LKR { isBulkBuyer ? parseFloat(item.wholesalePrice) : parseFloat(item.retailPrice)}
                         </p>
                       </div>
                       <div

@@ -202,9 +202,10 @@ const Dashboard = () => {
           />
           <IconCard
             icon={<CircleDollarSign className="w-9 h-9 text-blue-400" />}
-            amount={dailyRevenue}
+            amount={Number(dailyRevenue).toFixed(2)}
             title="Daily Revenue"
           />
+         
           <IconCard
             icon={<ChartNoAxesCombined className="w-9 h-9 text-blue-400" />}
             amount={totalSalesCount}

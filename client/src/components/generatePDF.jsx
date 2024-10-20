@@ -10,7 +10,6 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs;
 const generatePDF = (cartItems,  total, currentUserName, billingName, dispatch, setBillingName) => {
 
 
-
   const currentDate = new Date().toLocaleDateString('en-GB');
 
   const tableBody = [
@@ -31,8 +30,8 @@ const generatePDF = (cartItems,  total, currentUserName, billingName, dispatch, 
       item.name || '',
       item.warrantyPeriod, 
       item.cartQuantity || 0,
-      ` ${parseFloat(item.retailPrice || 0).toFixed(2)}`,
-      ` ${(item.cartQuantity * parseFloat(item.retailPrice || 0)).toFixed(2)}`
+      ` ${parseFloat(item.price || 0).toFixed(2)}`,
+      ` ${(item.cartQuantity * parseFloat(item.price || 0)).toFixed(2)}`
     ]);
   });
 

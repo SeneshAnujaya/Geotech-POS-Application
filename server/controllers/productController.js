@@ -14,7 +14,10 @@ export const addProduct = async (req, res, next) => {
     retailPrice,
     quantity,
     warranty,
+    wholesalePrice
   } = req.body;
+
+  
 
   if (
     !sku ||
@@ -24,7 +27,8 @@ export const addProduct = async (req, res, next) => {
     !retailPrice ||
     !quantity ||
     !brand ||
-    !warranty
+    !warranty ||
+    !wholesalePrice
   ) {
     return res
       .status(400)
@@ -45,6 +49,7 @@ export const addProduct = async (req, res, next) => {
         name: productName,
         costPrice,
         retailPrice,
+        wholesalePrice,
         quantity: parseInt(quantity),
         brandName: brand,
         warrantyPeriod: warranty,
@@ -115,7 +120,7 @@ export const updateProductsStock = async (req, res) => {
 export const updateProduct = async (req, res) => {
   const {sku} = req.params;
 
-  const {col2: name, description, col3:costPrice, col4:retailPrice,col5: quantity, col6:brandName, col8: warrantyPeriod} = req.body;
+  const {col2: name, description, col3:costPrice, col4:retailPrice, col5: wholesalePrice, col6: quantity, col7:brandName, col8: warrantyPeriod} = req.body;
 
   if(!sku) {
     return res.status(400).json({success: false, message: "SKU is required"});
@@ -141,6 +146,7 @@ export const updateProduct = async (req, res) => {
         name: name || product.name,
         costPrice: costPrice !== undefined ? parseFloat(costPrice) : product.costPrice,
         retailPrice: retailPrice !== undefined ? parseFloat(retailPrice) : product.retailPrice,
+        wholesalePrice: wholesalePrice !== undefined ? parseFloat(wholesalePrice) : product.wholesalePrice,
         quantity: quantity !== undefined ? parseFloat(quantity) : product.quantity,
         brandName: brandName || product.brandName,
         warrantyPeriod: warrantyPeriod || product.warrantyPeriod,

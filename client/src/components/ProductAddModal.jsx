@@ -127,7 +127,7 @@ const ProductAddModal = ({ isOpen, onClose, onCreate }) => {
             required
           />
            <label
-            htmlFor="quantity"
+            htmlFor="wholesalePrice"
             className="block text-sm font-medium text-gray-300"
           >
             Wholesale Price
