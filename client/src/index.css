@@ -10,3 +10,21 @@
     background-color: transparent !important;
 }
 
+/* For Chrome, Safari, Edge, and Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* For Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* For Internet Explorer 10+ (Optional if supporting IE) */
+input[type="number"] {
+    -ms-appearance: textfield;
+}
+
+

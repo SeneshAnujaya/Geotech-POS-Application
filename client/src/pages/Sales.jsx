@@ -22,19 +22,21 @@ const Sales = () => {
     id: sale.saleId,
     col1: sale.saleId,
     col2: sale.buyerName,
-    col3: sale.totalAmount,
-    col4: sale.user.name,
-    col5: new Date(sale.createdAt).toLocaleString(),
+    col3: sale.phoneNumber,
+    col4: sale.totalAmount,
+    col5: sale.user.name,
+    col6: new Date(sale.createdAt).toLocaleString(),
   }));
 
   const columns = [
     { field: "col1", headerName: "Sale Id", width: 200 },
     { field: "col2", headerName: "Customer", width: 200 },
-    { field: "col3", headerName: "Total", width: 200 },
-    { field: "col4", headerName: "Cashier", width: 200 },
-    { field: "col5", headerName: "Created At", width: 200 },
+    { field: "col3", headerName: "Phone Number", width: 150 },
+    { field: "col4", headerName: "Total", width: 200 },
+    { field: "col5", headerName: "Cashier", width: 200 },
+    { field: "col6", headerName: "Created At", width: 200 },
     {
-      field: "col6",
+      field: "col7",
       headerName: "Invoice",
       width: 200,
       renderCell: (params) => (
@@ -66,8 +68,9 @@ const Sales = () => {
     const total = parseFloat(selectSaleRecord.totalAmount);
     const currentUserName = selectSaleRecord.user.name;
     const billingName = selectSaleRecord.buyerName;
+    const phoneNumber = selectSaleRecord.phoneNumber;
 
-    generatePDF(invoiceItems, total, currentUserName, billingName);
+    generatePDF(invoiceItems, total, currentUserName, billingName, phoneNumber);
   };
 
   if (error || !sales) {
@@ -90,7 +93,7 @@ const Sales = () => {
             <h1 className="text-2xl font-semibold">Sale Records</h1>
           </div>
 
-          <div style={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+          <div style={{ width: "100%", maxWidth: "fit-content", height: "700px" }} className="mt-8">
             <DataGrid
               rows={rows}
               columns={columns}

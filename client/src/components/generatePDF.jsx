@@ -7,7 +7,7 @@ import { clearCart } from "../redux/cart/cartSlice";
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-const generatePDF = (cartItems,  total, currentUserName, billingName, dispatch, setBillingName) => {
+const generatePDF = (cartItems,  total, currentUserName, billingName, phoneNumber, dispatch, setBillingName) => {
 
 
   const currentDate = new Date().toLocaleDateString('en-GB');
@@ -72,13 +72,19 @@ const generatePDF = (cartItems,  total, currentUserName, billingName, dispatch, 
       {
         text: `\n\nCustomer: ${billingName}`,
         style: 'subheader',
-        alignment: "left"
+        alignment: "left",
+      },
+      {
+        text: `Telephone Number: ${phoneNumber ? phoneNumber : 'N/A'}`,
+        style: 'subheader',
+        alignment: "left",
+        marginBottom: 8
       },
       {
         table: {
           headerRows: 1,
           widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto'],
-          body: tableBody
+          body: tableBody,
         },
         layout: {
           hLineWidth: function (i, node) {

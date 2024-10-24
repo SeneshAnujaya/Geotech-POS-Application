@@ -51,12 +51,27 @@ const cartSlice = createSlice({
                 item.cartQuantity -= 1;
             }
         },
+        updateCartItemQuantity: (state, action) => {
+            const item = state.cartItems.find((item) => item.sku === action.payload.sku);
+            const newQuantity = action.payload.newQuantity;
+            
+            if(item) {
+                if(newQuantity > 0 && newQuantity <= item.quantity) {
+                    item.cartQuantity = newQuantity;
+                 
+                } else if (newQuantity > item.quantity) {
+                    showWarningToast("Not Enough Stock");
+                } else {
+                    showWarningToast("Quantity must be at least 1");
+                }
+            }
+        },
         clearCart: (state) => {
             state.cartItems = [];
         }
     }
 });
 
-export const {addItemToCart, removeItemFromCart, increaseItemQuantity, decreaseItemQuantity, clearCart } = cartSlice.actions;
+export const {addItemToCart, removeItemFromCart, increaseItemQuantity, decreaseItemQuantity,  updateCartItemQuantity, clearCart } = cartSlice.actions;
 
 export default cartSlice.reducer;

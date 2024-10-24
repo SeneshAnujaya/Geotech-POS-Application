@@ -1,6 +1,7 @@
 import {
   Album,
   Archive,
+  Boxes,
   BoxIcon,
   ClipboardCheckIcon,
   ClipboardList,
@@ -137,6 +138,12 @@ const Sidebar = () => {
           href="/sales"
           icon={Album}
           label="Sales"
+          isCollapsed={isSidebarCollapsed}
+        />
+         <SidebarLink
+          href="/Wholesales"
+          icon={Boxes}
+          label="Wholesale Clients"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink

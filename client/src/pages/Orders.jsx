@@ -7,6 +7,7 @@ import {
   addItemToCart,
   increaseItemQuantity,
   decreaseItemQuantity,
+  updateCartItemQuantity,
   clearCart,
   removeItemFromCart,
 } from "../redux/cart/cartSlice";
@@ -34,7 +35,9 @@ const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [billingName, setBillingName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isBulkBuyer, setIsBulkBuyer] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const {
     categories,
@@ -60,11 +63,30 @@ const Orders = () => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  const filteredProducts = selectedCategory
-    ? products.filter(
-        (product) => product.categoryId === selectedCategory.categoryId
-      )
-    : products;
+  // Filter product by selected category and search term
+  // const filteredProducts = selectedCategory
+  //   ? products.filter(
+  //       (product) => product.categoryId === selectedCategory.categoryId
+  //     )
+  //   : products;
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      const matchesCategory = !selectedCategory || product.categoryId === selectedCategory.categoryId;
+
+      const matchesSearchTerm = 
+      (product.name && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (product.brand && product.brand.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      return matchesCategory && matchesSearchTerm;
+    });
+  },[products, selectedCategory, searchTerm]);
+  // }) selectedCategory
+  //   ? products.filter(
+  //       (product) => product.categoryId === selectedCategory.categoryId
+  //     )
+  //   : products;
+  
 
   // Cart functionalities
   const handleAddToCart = (product) => {
@@ -92,6 +114,14 @@ const Orders = () => {
   const handleDecreaseQuantity = (sku) => {
     dispatch(decreaseItemQuantity({ sku }));
   };
+
+  const handleManualQuantityChange = (sku, value) => {
+    const newQuantity = parseInt(value, 10);
+
+    if(!isNaN(newQuantity) && newQuantity > 0) {
+      dispatch(updateCartItemQuantity({sku, newQuantity}));
+    }
+  }
 
   // Handle Buyer Type
   const handleBuyerTypeChange = (e) => {
@@ -139,6 +169,13 @@ const Orders = () => {
       showErrorToast("Customer Name Required");
       return;
     }
+
+    if (phoneNumber == "") {
+      showErrorToast("Phone Number is Required");
+      return;
+    }
+
+    
  
 
     try {
@@ -146,7 +183,9 @@ const Orders = () => {
        const res = await axios.post('http://localhost:3000/api/sales/createSaleRecordWithStockUpdate', {
         userId : currentUserId,
         items: itemsToRecord,
-        buyerName: billingName
+        buyerName: billingName,
+        phoneNumber: phoneNumber
+
        });
 
      if(res.status === 201 && res.data.success) {
@@ -155,7 +194,7 @@ const Orders = () => {
       generatePDF(cartItems.map(item => ({
         ...item,
         price: isBulkBuyer ? item.wholesalePrice : item.retailPrice  // Ensure correct price for each item
-      })), total, currentUserName, billingName, dispatch, setBillingName);
+      })), total, currentUserName, billingName, phoneNumber, dispatch, setBillingName, );
       // generatePDF(cartItems, total, currentUserName, billingName, dispatch, setBillingName);
       dispatch(fetchProducts());   
      } else {
@@ -196,8 +235,9 @@ const Orders = () => {
             <div className="relative">
               <input
                 type="search"
-                placeholder="Start type to search"
+                placeholder="Search via SKU Name Brand."
                 className="pl-10 pr-4 py-2 w-50 md:w-80 border border-slate-600 bg-slate-800 rounded-lg focus:outline-none focus:border-blue-500 "
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
               <div className="absolute inset-y-0 left-0 pl-3 pt-3 flex  pointer-events-none">
                 <Search className="text-gray-500" size={20} />
@@ -244,7 +284,7 @@ const Orders = () => {
             <div className="flex flex-wrap  gap-4 mt-6">
               {productLoading ? (
                 <div className="mt-3 mb-2">Loading products...</div>
-              ) : (
+              ) : ( filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
                   <div
                     key={product.sku}
@@ -296,8 +336,9 @@ const Orders = () => {
                         {product.quantity} Stock
                       </p>
                     </div>
-                  </div>
-                ))
+                  </div>) 
+                )) : (<div className="mt-4 text-slate-300">No products found !</div>)
+              
               )}
             </div>
           </div>
@@ -353,14 +394,17 @@ const Orders = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-end w-full flex-wrap mt-2">
-                      <div className=" flex items-center gap-3 rounded-md">
+                      <div className=" flex items-center gap-2 rounded-md">
                         <button
                           onClick={() => handleDecreaseQuantity(item.sku)}
                           className="bg-slate-900 border border-slate-500 rounded-md p-[1px] hover:bg-blue-600 hover:border-blue-600"
                         >
                           <MinusIcon className="w-4 h-4 text-slate-200" />
                         </button>
-                        <p>{item.cartQuantity}</p>
+
+                        <input type="number" value={item.cartQuantity}  className="w-7 bg-slate-900 border border-slate-500 rounded-[4px] focus:outline-none no-arrows text-center text-slate-300" onChange={(e) => handleManualQuantityChange(item.sku, e.target.value)} min="1"/>
+
+                       
                         <button
                           onClick={() => handleIncreaseQuantity(item.sku)}
                           className="border border-slate-500  rounded-md p-[1px] hover:bg-blue-600  hover:border-blue-600"
@@ -410,7 +454,7 @@ const Orders = () => {
                 LKR {total}
               </p>
             </div>
-            <div className="flex items-end justify-between gap-2">
+            <div className="flex flex-col items-end justify-between gap-2">
               <input
                 type="text"
                 name="customerName"
@@ -418,6 +462,14 @@ const Orders = () => {
                 className="mt-4 w-full px-2 py-1.5 border border-slate-600 bg-slate-900 rounded-md focus:outline-none focus:border-blue-500 text-sm"
                 onChange={(e) => setBillingName(e.target.value)}
                 value={billingName}
+              />
+              <input
+                type="text"
+                name="phoneNumber"
+                placeholder="Telephone"
+                className="w-full px-2 py-1.5 border border-slate-600 bg-slate-900 rounded-md focus:outline-none focus:border-blue-500 text-sm"
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                value={phoneNumber}
               />
               {/* <button className="bg-slate-700 text-[0.9rem] py-1.5 px-2 rounded-md hover:cursor-pointer">submit</button> */}
             </div>

@@ -189,9 +189,9 @@ export const getMonthlySaleCount = async (req, res) => {
 
 // Record sale and update stock when print invoice
 export const createSaleRecordWithStockUpdate = async (req, res) => {
-    const { userId, items, buyerName } = req.body;
+    const { userId, items, buyerName, phoneNumber } = req.body;
 
-    if (!userId || !items || !Array.isArray(items) || items.length === 0) {
+    if (!userId || !items || !Array.isArray(items) || items.length === 0 || !buyerName || !phoneNumber) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid input data" });
@@ -209,6 +209,7 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
                     0
                   ),
                   buyerName: buyerName,
+                  phoneNumber
                 },
               });
 

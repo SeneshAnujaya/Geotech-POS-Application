@@ -66,7 +66,8 @@ model Sale {
   totalAmount Decimal    @db.Decimal(10, 2)
   createdAt   DateTime   @default(now())
   buyerName   String?  
-
+  phoneNumber String?
+   
   user        User       @relation(fields: [userId], references: [id])
   SalesItem   SalesItem[]
 }
@@ -80,4 +81,14 @@ model SalesItem {
 
   sale        Sale       @relation(fields: [saleId], references: [saleId])
   product     Product    @relation(fields: [productId], references: [productId])
+}
+
+model BulkBuyer {
+  bulkBuyerId   Int        @id @default(autoincrement())
+  name          String
+  phoneNumber   String
+  email         String?
+  companyName   String?
+  outstandingBalance Decimal @db.Decimal(10, 2) @default(0.00) // Track unpaid balance
+  createdAt     DateTime   @default(now())
 }
