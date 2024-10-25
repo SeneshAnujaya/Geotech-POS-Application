@@ -9,49 +9,40 @@ import {
 import { PlusCircleIcon } from "lucide-react";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import DataTable from "../components/DataTable";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import WholesaleClientAddModal from "../components/WholesaleClientAddModal";
+import { fetchWholesaleClients } from "../redux/wholesaleclients/wholesaleclientSlice";
 
 const WholesaleClients = () => {
   const [users, setusers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
+  const { wholesaleClients, loading, error } = useSelector((state) => state.wholesaleClients);
+  
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchWholesaleClients());
+  }, [dispatch]);
+  console.log(wholesaleClients);
+  
 
   const role = currentUser.rest.role;
 
-  const getusers = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("http://localhost:3000/api/user/getusers");
-
-      if (res.data.success) {
-        setLoading(false);
-        const users = res.data.data;
-        setusers(users);
-      } else {
-        showErrorToast("Failed to get users");
-      }
-    } catch (error) {
-      setLoading(false);
-      showErrorToast("server Error");
-    }
-  };
-
-  useEffect(() => {
-    getusers();
-  }, []);
 
   // DATA GRID ROWS COLUMNS
-  const rows = users.map((user) => ({
-    id: user.id,
-    col1: user.id,
-    col2: user.name,
-    col3: user.email,
-    col4: user.role,
-    col5: new Date(user.createdAt).toLocaleString(),
-    col6: new Date(user.updatedAt).toLocaleString(),
+  const rows = wholesaleClients.map((client) => ({
+    id: client.bulkBuyerId,
+    col1: client.bulkBuyerId,
+    col2: client.name,
+    col3: client.phoneNumber,
+    col4: client.email,
+    col5: client.companyName,
+    col6: Number((client.outstandingBalance)).toFixed(2),
+    col7: new Date(client.createdAt).toLocaleString(),
+
   }));
 
   const columns = [
@@ -64,23 +55,28 @@ const WholesaleClients = () => {
     },
     {
       field: "col3",
-      headerName: "Email",
-      width: 200,
+      headerName: "Phone Number",
+      width: 150,
       editable: (params) => params.row.id === editableRowId,
     },
     {
       field: "col4",
-      headerName: "Role",
+      headerName: "Email",
       width: 200,
     },
     {
       field: "col5",
-      headerName: "CreatedAt",
+      headerName: "Company Name",
       width: 200,
     },
     {
       field: "col6",
-      headerName: "UpdatedAt",
+      headerName: "OutsandingBalance",
+      width: 100,
+    },
+    {
+      field: "col7",
+      headerName: "Created at",
       width: 200,
     },
   ];
@@ -90,11 +86,11 @@ const WholesaleClients = () => {
     update: "http://localhost:3000/api/user/updateuser",
   };
 
-  const handleCreateUser = async (formData) => {
+  const handleCreateWholesaleClient = async (formData) => {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/auth/signup",
+        "http://localhost:3000/api/wholesaleClient/add",
         formData,
         {
           headers: {
@@ -110,8 +106,8 @@ const WholesaleClients = () => {
         return;
       }
       setLoading(false);
-      getusers();
-      showSuccessToast("Account created successfully!");
+      // getusers();
+      showSuccessToast("Client created successfully!");
     } catch (error) {
       console.log(error);
 
@@ -160,7 +156,7 @@ const WholesaleClients = () => {
           <WholesaleClientAddModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            onCreate={handleCreateUser}
+            onCreate={handleCreateWholesaleClient}
           />
         </div>
       )}

@@ -363,6 +363,7 @@ const Orders = () => {
             </div>
 
             {/* cart product item */}
+            <div className="h-[400px] overflow-auto">
             {cartItems.map((item) => (
               <div
                 className="border mt-4 border-slate-700 rounded-md bg-slate-900 p-2 w-full"
@@ -417,6 +418,7 @@ const Orders = () => {
                 </div>
               </div>
             ))}
+          </div>
           </div>
           {/* Payement summary */}
           <div className="border mt-4  border-slate-700 rounded-md bg-slate-900 p-3">
