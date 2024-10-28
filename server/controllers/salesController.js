@@ -186,12 +186,34 @@ export const getMonthlySaleCount = async (req, res) => {
   }
 };
 
+// Generate Invoice Number
+const generateInvoiceNumber = async (prisma) => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+     // Get the count of sales for today to use as a sequential number
+     const salesCount = await prisma.sale.count({
+      where: {
+          createdAt: {
+              gte: new Date(year, date.getMonth(), day), // Start of the day
+              lt: new Date(year, date.getMonth(), day + 1) // Start of the next day
+          }
+      }
+  });
+
+  // Format the invoice number
+  const invoiceNumber = `INV-${year}-${month}-${day}-${String(salesCount + 1).padStart(3, '0')}`;
+  return invoiceNumber;
+}
+
 
 // Record sale and update stock when print invoice
 export const createSaleRecordWithStockUpdate = async (req, res) => {
-    const { userId, items, buyerName, phoneNumber } = req.body;
+    const { userId, items,  clientName, phoneNumber, discount, paidAmount, grandTotal, isBulkBuyer, selectedClientId } = req.body;
 
-    if (!userId || !items || !Array.isArray(items) || items.length === 0 || !buyerName || !phoneNumber) {
+    if (!userId || !items || !Array.isArray(items) || items.length === 0 || !clientName || !phoneNumber) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid input data" });
@@ -200,6 +222,11 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
     try {
         // Start transaction
         const sale = await prisma.$transaction(async (prisma) => {
+          
+          // generate Invoice Number
+          const invoiceNumber = await generateInvoiceNumber(prisma);
+          
+          
             // step one - create sale record
             const newSale = await prisma.sale.create({
                 data: {
@@ -208,8 +235,15 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
                     (total, item) => total + item.price * item.cartQuantity,
                     0
                   ),
-                  buyerName: buyerName,
-                  phoneNumber
+                  paidAmount,
+                  paymentStatus: paidAmount >= grandTotal ? "FULL PAID" : "PARTIALLY_PAID",
+                 
+                  buyerName: clientName,
+                  phoneNumber,
+                  bulkBuyerId: isBulkBuyer ? Number(selectedClientId) : null,
+                  discount: discount,
+                  invoiceNumber
+
                 },
               });
 
@@ -241,6 +275,15 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
                     where: {sku: item.sku},
                     data: {quantity: product.quantity - item.cartQuantity }
                 });
+            }
+
+            if(isBulkBuyer) {
+              const bulkBuyer = await prisma.bulkBuyer.update({
+                where: { bulkBuyerId: Number(selectedClientId)},
+                data: {outstandingBalance: {
+                  increment: grandTotal - paidAmount
+                }}
+              })
             }
             return newSale;
         });

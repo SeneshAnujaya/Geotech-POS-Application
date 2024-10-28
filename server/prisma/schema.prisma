@@ -62,14 +62,21 @@ model Product {
 
 model Sale {
   saleId      Int       @id @default(autoincrement())
+  invoiceNumber String  @default("TEMP-INV-DEFAULT")
   userId      Int
   totalAmount Decimal    @db.Decimal(10, 2)
+  discount    Decimal @db.Decimal(10, 2) @default(0.00)
+  paidAmount Decimal @db.Decimal(10, 2) @default(0.00)
+  paymentStatus String @default("UNPAID")
   createdAt   DateTime   @default(now())
   buyerName   String?  
   phoneNumber String?
    
   user        User       @relation(fields: [userId], references: [id])
   SalesItem   SalesItem[]
+
+  bulkBuyerId Int?
+  bulkBuyer BulkBuyer? @relation(fields: [bulkBuyerId], references: [bulkBuyerId])
 }
 
 model SalesItem {
@@ -91,4 +98,6 @@ model BulkBuyer {
   companyName   String?
   outstandingBalance Decimal @db.Decimal(10, 2) @default(0.00) // Track unpaid balance
   createdAt     DateTime   @default(now())
+
+  Sales Sale[]
 }

@@ -26,7 +26,7 @@ const WholesaleClients = () => {
   useEffect(() => {
     dispatch(fetchWholesaleClients());
   }, [dispatch]);
-  console.log(wholesaleClients);
+ 
   
 
   const role = currentUser.rest.role;

@@ -28,14 +28,13 @@ import {
 import axios from "axios";
 import MouseImage from "../assets/mouse.jpg";
 import generatePDF from "../components/generatePDF";
+import SaleconfirmModal from "../components/SaleconfirmModal";
 
 const Orders = () => {
   // const [loading, setLoading] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [billingName, setBillingName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [isBulkBuyer, setIsBulkBuyer] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -144,12 +143,101 @@ const Orders = () => {
 
  
 
-  const handlePrintInvoice = async () => {
+  // const handlePrintInvoice = async () => {
 
-    const updatedStockProduct = cartItems.map(item => ({
-      sku: item.sku,
-      newQuantity: item.quantity - item.cartQuantity,
-     }));
+  //   const updatedStockProduct = cartItems.map(item => ({
+  //     sku: item.sku,
+  //     newQuantity: item.quantity - item.cartQuantity,
+  //    }));
+
+  //   //  Sales record array
+  //   const itemsToRecord = cartItems.map(item => ({
+  //     sku: item.sku,
+  //     productId: item.productId,
+  //     cartQuantity: item.cartQuantity,
+  //     price: isBulkBuyer ? item.wholesalePrice: item.retailPrice
+
+  //   }));
+
+  //    if (!cartItems || cartItems.length === 0) {
+  //     showWarningToast("Cart is empty");
+  //     return;
+  //   }
+  
+  //   if (billingName == "") {
+  //     showErrorToast("Customer Name Required");
+  //     return;
+  //   }
+
+  //   if (phoneNumber == "") {
+  //     showErrorToast("Phone Number is Required");
+  //     return;
+  //   }
+
+    
+ 
+
+  //   try {
+  //   //  const res = await axios.post('http://localhost:3000/api/products/updatestock', {stockUpdates: updatedStockProduct});
+  //      const res = await axios.post('http://localhost:3000/api/sales/createSaleRecordWithStockUpdate', {
+  //       userId : currentUserId,
+  //       items: itemsToRecord,
+  //       buyerName: billingName,
+  //       phoneNumber: phoneNumber
+
+  //      });
+
+  //    if(res.status === 201 && res.data.success) {
+  //     showSuccessToast('Sale and stock updated successfully!');
+  
+  //     generatePDF(cartItems.map(item => ({
+  //       ...item,
+  //       price: isBulkBuyer ? item.wholesalePrice : item.retailPrice  // Ensure correct price for each item
+  //     })), total, currentUserName, billingName, phoneNumber, dispatch, setBillingName, );
+  //     // generatePDF(cartItems, total, currentUserName, billingName, dispatch, setBillingName);
+  //     dispatch(fetchProducts());   
+  //    } else {
+  //     showErrorToast("Failed to update stock!")
+  //    }
+
+  //   //  create Sale record request
+  //   // const saleRes = await axios.post("http://localhost:3000/api/sales/createSaleRecord", {
+  //   //   userId : currentUserId,
+  //   //   items: itemsToRecord,
+  //   //   buyerName: billingName
+  //   // })
+
+  //   // if(saleRes.status === 201 && saleRes.data.success){
+  //   //   showSuccessToast("Sale recorded successfully!");
+  //   // } else {
+  //   //   showErrorToast("Failed to add sale record!");
+  //   // }
+     
+  //   } catch (error) {
+  //     console.log(error);
+  //     showErrorToast("Failed update stock & sale. Please try again.");
+      
+  //   }
+    
+  // }
+
+  const handleProceedCheckout = () => {
+
+    if (!cartItems || cartItems.length === 0) {
+      showWarningToast("Cart is empty");
+      return;
+    } else {
+      setIsModalOpen(true);
+    }
+
+  }
+
+  const handlePrintInvoice = async (formData) => {
+
+    const {clientName, phonenumber, discount, paidAmount, selectedClientId, grandTotal} = formData;
+    console.log(formData);
+    
+
 
     //  Sales record array
     const itemsToRecord = cartItems.map(item => ({
@@ -160,15 +248,11 @@ const Orders = () => {
 
     }));
 
-     if (!cartItems || cartItems.length === 0) {
-      showWarningToast("Cart is empty");
-      return;
-    }
   
-    if (billingName == "") {
-      showErrorToast("Customer Name Required");
-      return;
-    }
+    // if (billingName == "") {
+    //   showErrorToast("Customer Name Required");
+    //   return;
+    // }
 
     if (phoneNumber == "") {
       showErrorToast("Phone Number is Required");
@@ -179,40 +263,30 @@ const Orders = () => {
  
 
     try {
-    //  const res = await axios.post('http://localhost:3000/api/products/updatestock', {stockUpdates: updatedStockProduct});
+
        const res = await axios.post('http://localhost:3000/api/sales/createSaleRecordWithStockUpdate', {
         userId : currentUserId,
         items: itemsToRecord,
-        buyerName: billingName,
-        phoneNumber: phoneNumber
-
+        isBulkBuyer: isBulkBuyer,
+        clientName, phoneNumber:phonenumber, discount,total, paidAmount, selectedClientId, grandTotal
        });
 
      if(res.status === 201 && res.data.success) {
       showSuccessToast('Sale and stock updated successfully!');
+
+     const invoiceNumber = res.data.sale.invoiceNumber;
+
+  
+      
   
       generatePDF(cartItems.map(item => ({
         ...item,
         price: isBulkBuyer ? item.wholesalePrice : item.retailPrice  // Ensure correct price for each item
-      })), total, currentUserName, billingName, phoneNumber, dispatch, setBillingName, );
-      // generatePDF(cartItems, total, currentUserName, billingName, dispatch, setBillingName);
+      })), total, currentUserName, clientName, phonenumber, dispatch, discount, paidAmount, invoiceNumber );
       dispatch(fetchProducts());   
      } else {
       showErrorToast("Failed to update stock!")
      }
-
-    //  create Sale record request
-    // const saleRes = await axios.post("http://localhost:3000/api/sales/createSaleRecord", {
-    //   userId : currentUserId,
-    //   items: itemsToRecord,
-    //   buyerName: billingName
-    // })
-
-    // if(saleRes.status === 201 && saleRes.data.success){
-    //   showSuccessToast("Sale recorded successfully!");
-    // } else {
-    //   showErrorToast("Failed to add sale record!");
-    // }
      
     } catch (error) {
       console.log(error);
@@ -363,7 +437,7 @@ const Orders = () => {
             </div>
 
             {/* cart product item */}
-            <div className="h-[400px] overflow-auto">
+            <div className="h-[320px] overflow-auto">
             {cartItems.map((item) => (
               <div
                 className="border mt-4 border-slate-700 rounded-md bg-slate-900 p-2 w-full"
@@ -421,7 +495,7 @@ const Orders = () => {
           </div>
           </div>
           {/* Payement summary */}
-          <div className="border mt-4  border-slate-700 rounded-md bg-slate-900 p-3">
+          <div className="border mt-4  border-slate-700 rounded-md bg-slate-900 p-4">
           {/* Customer Type  */}
           <p className="text-[0.95rem] text-slate-200 font-semibold">
               Customer Type
@@ -443,10 +517,7 @@ const Orders = () => {
               <p className="text-slate-300 text-[0.9rem]">Sub Total</p>
               <p className="text-slate-300 text-[0.9rem]">LKR {subTotal}</p>
             </div>
-            <div className="flex justify-between items-center gap-2 mt-2">
-              <p className="text-slate-300 text-[0.9rem]">Discount</p>
-              <p className="text-slate-300 text-[0.9rem]">N/A</p>
-            </div>
+       
             <div className="w-full h-px bg-slate-700 mt-3 mb-2"></div>
             <div className="flex justify-between items-center gap-2 mt-2">
               <p className="text-slate-200 font-semibold text-[0.92rem]">
@@ -456,32 +527,25 @@ const Orders = () => {
                 LKR {total}
               </p>
             </div>
-            <div className="flex flex-col items-end justify-between gap-2">
-              <input
-                type="text"
-                name="customerName"
-                placeholder="Billing Name"
-                className="mt-4 w-full px-2 py-1.5 border border-slate-600 bg-slate-900 rounded-md focus:outline-none focus:border-blue-500 text-sm"
-                onChange={(e) => setBillingName(e.target.value)}
-                value={billingName}
-              />
-              <input
-                type="text"
-                name="phoneNumber"
-                placeholder="Telephone"
-                className="w-full px-2 py-1.5 border border-slate-600 bg-slate-900 rounded-md focus:outline-none focus:border-blue-500 text-sm"
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                value={phoneNumber}
-              />
-              {/* <button className="bg-slate-700 text-[0.9rem] py-1.5 px-2 rounded-md hover:cursor-pointer">submit</button> */}
-            </div>
+           
 
             <button
               className="text-center w-full bg-blue-600 mt-4 py-2 px-2 rounded-md"
-              onClick={handlePrintInvoice}
+              // onClick={handlePrintInvoice}
+              onClick={handleProceedCheckout}
             >
-              Print Invoice
+              Proceed to checkout
             </button>
+
+
+            {/* Sale Confirm Modal */}
+            <SaleconfirmModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            isBulkBuyer={isBulkBuyer}
+            onCreate={handlePrintInvoice}
+            total={total}
+          />
           </div>
         </div>
         {/* Header bar */}

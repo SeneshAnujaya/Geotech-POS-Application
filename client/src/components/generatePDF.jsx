@@ -7,7 +7,7 @@ import { clearCart } from "../redux/cart/cartSlice";
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-const generatePDF = (cartItems,  total, currentUserName, billingName, phoneNumber, dispatch, setBillingName) => {
+const generatePDF = (cartItems,  total, currentUserName, billingName, clientName, phoneNumber, phonenumber, dispatch, setBillingName, discount, paidAmount, invoiceNumber) => {
 
 
   const currentDate = new Date().toLocaleDateString('en-GB');
