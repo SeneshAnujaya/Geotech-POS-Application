@@ -7,7 +7,7 @@ import { clearCart } from "../redux/cart/cartSlice";
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-const generatePDF = (cartItems,  total, currentUserName, billingName, clientName, phoneNumber, phonenumber, dispatch, setBillingName, discount, paidAmount, invoiceNumber) => {
+const generatePDF = (cartItems,  total, currentUserName, billingName, phoneNumber, dispatch = null, discount, grandTotal, paidAmount, invoiceNumber) => {
 
 
   const currentDate = new Date().toLocaleDateString('en-GB');
@@ -35,6 +35,8 @@ const generatePDF = (cartItems,  total, currentUserName, billingName, clientName
     ]);
   });
 
+  const restBalance = (paidAmount < grandTotal) ? (grandTotal - paidAmount).toFixed(2) : null;
+
   const docDefinition = {
     content: [
       {
@@ -57,7 +59,7 @@ const generatePDF = (cartItems,  total, currentUserName, billingName, clientName
                   { text: 'Date: ', bold: true },
                   `${currentDate}\n`,
                   { text: 'Invoice No: ', bold: true },
-                  'UN00036563\n',
+                  `${invoiceNumber ? invoiceNumber : "N/A"}\n`,
                   { text: 'Sales Rep: ', bold: true },
                   `${currentUserName}\n`,
                 ],
@@ -106,12 +108,16 @@ const generatePDF = (cartItems,  total, currentUserName, billingName, clientName
         },
       },
       // Subtotal and Total
-      { text: `\nDiscount: N/A`, alignment:"right", bold: true},
       {
-        text: `Total: ${total}`,
-        style: 'total',
+        text: `\nAMOUNT: LKR ${total}`,
+    
         alignment: 'right',
+        bold: true
       },
+      { text: `DISCOUNT: LKR ${discount ? discount : "N/A"}`, alignment:"right", bold: true},
+      { text: `TOTAL: LKR ${grandTotal ? grandTotal : "0"}`,     style: 'total', alignment:"right", bold: true},
+      { text: `PAID: LKR ${paidAmount ? paidAmount : "0"}`,  style: 'total', alignment:"right", bold: true},
+      ...(restBalance ? [{ text: `DUE: LKR ${restBalance}`, alignment: 'right', bold: true}] : []),
      
       {
         text: '\nWarranty period less 14 working days.\n No warranty for key boards, mouse, speakers, ink Cartridge.\nNo warranty for burn marks, physical damages and corrosion.',
@@ -172,9 +178,8 @@ const generatePDF = (cartItems,  total, currentUserName, billingName, clientName
 
   pdfMake.createPdf(docDefinition).print(); // Open print dialog
 
-  if (dispatch && setBillingName) {
+  if (dispatch) {
     dispatch(clearCart());
-    setBillingName("");
   }
   // dispatch(clearCart());
   // setBillingName('');

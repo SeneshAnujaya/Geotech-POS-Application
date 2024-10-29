@@ -63,11 +63,6 @@ const Orders = () => {
   }, [dispatch]);
 
   // Filter product by selected category and search term
-  // const filteredProducts = selectedCategory
-  //   ? products.filter(
-  //       (product) => product.categoryId === selectedCategory.categoryId
-  //     )
-  //   : products;
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const matchesCategory = !selectedCategory || product.categoryId === selectedCategory.categoryId;
@@ -248,16 +243,12 @@ const Orders = () => {
 
     }));
 
-  
-    // if (billingName == "") {
-    //   showErrorToast("Customer Name Required");
+
+
+    // if (phoneNumber == "") {
+    //   showErrorToast("Phone Number is Required");
     //   return;
     // }
-
-    if (phoneNumber == "") {
-      showErrorToast("Phone Number is Required");
-      return;
-    }
 
     
  
@@ -277,12 +268,11 @@ const Orders = () => {
      const invoiceNumber = res.data.sale.invoiceNumber;
 
   
-      
-  
-      generatePDF(cartItems.map(item => ({
-        ...item,
-        price: isBulkBuyer ? item.wholesalePrice : item.retailPrice  // Ensure correct price for each item
-      })), total, currentUserName, clientName, phonenumber, dispatch, discount, paidAmount, invoiceNumber );
+     generatePDF(cartItems.map(item => ({
+      ...item,
+      price: isBulkBuyer ? item.wholesalePrice : item.retailPrice 
+    })), total, currentUserName, clientName, phonenumber, dispatch, discount, grandTotal, paidAmount, invoiceNumber );
+
       dispatch(fetchProducts());   
      } else {
       showErrorToast("Failed to update stock!")
@@ -531,7 +521,6 @@ const Orders = () => {
 
             <button
               className="text-center w-full bg-blue-600 mt-4 py-2 px-2 rounded-md"
-              // onClick={handlePrintInvoice}
               onClick={handleProceedCheckout}
             >
               Proceed to checkout

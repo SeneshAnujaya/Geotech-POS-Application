@@ -20,27 +20,45 @@ const Sales = () => {
 
   const rows = sales.map((sale) => ({
     id: sale.saleId,
-    col1: sale.saleId,
+    col1: sale.invoiceNumber,
     col2: sale.buyerName,
     col3: sale.phoneNumber,
     col4: sale.totalAmount,
-    col5: sale.user.name,
-    col6: new Date(sale.createdAt).toLocaleString(),
+    col5: sale.discount,
+    col6: (sale.totalAmount - sale.discount),
+    col7: sale.paidAmount,
+    col8: sale.paymentStatus,
+    col9: sale.user.name,
+    col10: new Date(sale.createdAt).toLocaleString(),
   }));
 
   const columns = [
-    { field: "col1", headerName: "Sale Id", width: 200 },
-    { field: "col2", headerName: "Customer", width: 200 },
+    { field: "col1", headerName: "Invoice Number", width: 200 },
+    { field: "col2", headerName: "Customer", width: 150 },
     { field: "col3", headerName: "Phone Number", width: 150 },
-    { field: "col4", headerName: "Total", width: 200 },
-    { field: "col5", headerName: "Cashier", width: 200 },
-    { field: "col6", headerName: "Created At", width: 200 },
+    { field: "col4", headerName: "Amount", width: 120 },
+    { field: "col5", headerName: "Discount", width: 100 },
+    { field: "col6", headerName: "Total", width: 100 },
+    { field: "col7", headerName: "Paid", width: 120 },
+    { field: "col8", headerName: "Status", width: 200,  renderCell: (params) => (
+      <div className="flex items-center  h-full">
+      <button
+        variant="contained"
+        color="primary"
+        className={`bg-blue-800 flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-bold leading-none ${params.value === "FULL PAID" ? 'bg-green-700' : 'bg-orange-600' }`}
+      >
+        {params.value}
+      </button>
+    </div>
+    ), },
+    { field: "col9", headerName: "Cashier", width: 150 },
+    { field: "col10", headerName: "Created At", width: 200 },
     {
-      field: "col7",
+      field: "col11",
       headerName: "Invoice",
       width: 200,
       renderCell: (params) => (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center h-full">
           <button
             variant="contained"
             color="primary"
@@ -69,8 +87,17 @@ const Sales = () => {
     const currentUserName = selectSaleRecord.user.name;
     const billingName = selectSaleRecord.buyerName;
     const phoneNumber = selectSaleRecord.phoneNumber;
+    const discount = selectSaleRecord.discount;
+    const grandTotal = total - discount; 
+    const paidAmount = selectSaleRecord.paidAmount;
+    const invoiceNumber = selectSaleRecord.invoiceNumber;
+  
+    
 
-    generatePDF(invoiceItems, total, currentUserName, billingName, phoneNumber);
+    
+    
+
+    generatePDF(invoiceItems, total, currentUserName, billingName, phoneNumber,null, discount, grandTotal, paidAmount, invoiceNumber);
   };
 
   if (error || !sales) {

@@ -22,7 +22,7 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
     clientName: '',
     phonenumber: '',
     discount: 0,
-    paidAmount: isBulkBuyer ? 0 : grandTotal,
+    paidAmount: isBulkBuyer ? grandTotal : grandTotal,
     selectedClientId: null,
   });
 
@@ -37,7 +37,7 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
 
   useEffect(() => {
     if(isBulkBuyer) {
-      setFormData((prevData) => ({...prevData, paidAmount : 0}));
+      setFormData((prevData) => ({...prevData, paidAmount : grandTotal}));
     } else {
       setFormData((prevData) => ({...prevData, paidAmount: grandTotal}));
     }
@@ -63,13 +63,17 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
     return;
   }
 
-  if (formData.discount > total) {
+  if (Number(formData.discount) > Number(total)) {
+    
     showErrorToast("Discount cannot exceed the total amount.");
     return;
   }
 
 
     const dataToSubmit = { ...formData, grandTotal, selectedClientId: isBulkBuyer ? formData.selectedClientId : null,  };
+
+    console.log(dataToSubmit);
+    
     
     onCreate(dataToSubmit);
     onClose();
@@ -78,7 +82,7 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
       clientName: '',
       phonenumber: '',
       discount: 0,
-      paidAmount: isBulkBuyer ? 0 : total, // Reset to default based on isBulkBuyer
+      paidAmount: isBulkBuyer ? grandTotal : total, // Reset to default based on isBulkBuyer
       selectedClientId: null,
     });
   };

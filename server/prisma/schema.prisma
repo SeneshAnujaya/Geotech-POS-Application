@@ -77,6 +77,8 @@ model Sale {
 
   bulkBuyerId Int?
   bulkBuyer BulkBuyer? @relation(fields: [bulkBuyerId], references: [bulkBuyerId])
+
+   Payments       Payment[]
 }
 
 model SalesItem {
@@ -100,4 +102,19 @@ model BulkBuyer {
   createdAt     DateTime   @default(now())
 
   Sales Sale[]
+  Payments        Payment[] 
+}
+
+model Payment {
+  paymentId     Int       @id @default(autoincrement())
+  saleId        Int
+  bulkBuyerId   Int?
+  paymentAmount Decimal    @db.Decimal(10, 2)
+  paymentDate   DateTime   @default(now())
+  paymentMethod String?   // (e.g., "cash", "credit card", "bank transfer")
+  
+  sale          Sale       @relation(fields: [saleId], references: [saleId])
+  bulkBuyer     BulkBuyer? @relation(fields: [bulkBuyerId], references: [bulkBuyerId])
+
+  @@index([saleId, paymentDate]) // Index for quick lookups of payments by sale and date
 }

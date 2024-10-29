@@ -78,41 +78,40 @@ const Dashboard = () => {
   // Sales data for datagrid
   const rows =  [...sales].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15).map((sale) => ({
     id: sale.saleId,
-    col1: sale.saleId,
+    col1: sale.invoiceNumber,
     col2: sale.buyerName,
     col3: sale.totalAmount,
-    col4: sale.user.name,
-    col5: new Date(sale.createdAt),
+    col4: sale.paidAmount,
+    col5: sale.user.name,
+    col6: sale.paymentStatus,
+    col7: new Date(sale.createdAt),
   }));
 
   const columns = [
-    { field: "col1", headerName: "Sale Id", width: 100 },
-    { field: "col2", headerName: "Customer", width: 160 },
-    { field: "col3", headerName: "Total", width: 150 },
-    { field: "col4", headerName: "Cashier", width: 100 },
-    { field: "col5", headerName: "Created At", width: 200, type: "date", valueFormatter: (params) => {
+    { field: "col1", headerName: "Sale Id", width: 150 },
+    { field: "col2", headerName: "Customer", width: 130 },
+    { field: "col3", headerName: "Total", width: 90 },
+    { field: "col4", headerName: "Paid", width: 90 },
+    { field: "col5", headerName: "Cashier", width: 100 },
+    { field: "col6", headerName: "Status", width: 150 , renderCell: (params) => (
+      <div className="flex items-center justify-center h-full">
+      <button
+        variant="contained"
+        color="primary"
+        className={`bg-blue-800 flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-bold leading-none ${params.value === "FULL PAID" ? 'bg-green-700' : 'bg-orange-600' }`}
+      >
+        {params.value}
+      </button>
+    </div>
+    ),},
+
+    { field: "col7", headerName: "Created At", width: 170, type: "date", valueFormatter: (params) => {
       const date = params;
       return date ? date.toLocaleString() : "N/A"
       
       
     }},
-    {
-      field: "col6",
-      headerName: "State",
-      width: 100,
-      renderCell: (params) => (
-        <div className="flex items-center justify-center h-full">
-          <div
-            variant="contained"
-            color="primary"
-            className="bg-blue-800 flex rounded-full h-6 items-center px-3 text-[0.8rem]"
-            // onClick={() => handleInvoice(params.row.id)}
-          >
-            Complete
-          </div>
-        </div>
-      ),
-    },
+    
   ];
 
   const sortModel = [
