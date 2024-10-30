@@ -5,11 +5,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchSales } from "../redux/sales/saleSlice";
 import InvoiceModal from "../components/InvoiceModal";
 import generatePDF from "../components/generatePDF";
+import DuePayModal from "../components/DuePayModal";
+import axios from "axios";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "../components/ToastNotification";
 
-const Sales = () => {
+const DueSales = () => {
   // const [loading, setLoading] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedSale, setSelectedSale] = useState({});
 
   const { sales, loading, error } = useSelector((state) => state.sales);
   const dispatch = useDispatch();
@@ -18,45 +26,61 @@ const Sales = () => {
     dispatch(fetchSales());
   }, [dispatch]);
 
-  const rows = sales.map((sale) => ({
+  const filteredSales = sales.filter(
+    (sale) =>
+      sale.paymentStatus === "UNPAID" || sale.paymentStatus === "PARTIALLY_PAID"
+  );
+
+  const rows = filteredSales.map((sale) => ({
     id: sale.saleId,
     col1: sale.invoiceNumber,
     col2: sale.buyerName,
     col3: sale.phoneNumber,
     col4: sale.totalAmount,
     col5: sale.discount,
-    col6: (sale.totalAmount - sale.discount),
+    col6: sale.totalAmount - sale.discount,
     col7: sale.paidAmount,
     col8: sale.paymentStatus,
     col9: sale.user.name,
-    col10: new Date(sale.createdAt).toLocaleString(),
+    // col10: new Date(sale.createdAt).toLocaleString(),
   }));
 
   const columns = [
     { field: "col1", headerName: "Invoice Number", width: 200 },
-    { field: "col2", headerName: "Customer", width: 150 },
+    { field: "col2", headerName: "Name", width: 150 },
     { field: "col3", headerName: "Phone Number", width: 150 },
     { field: "col4", headerName: "Amount", width: 120 },
     { field: "col5", headerName: "Discount", width: 100 },
     { field: "col6", headerName: "Total", width: 100 },
-    { field: "col7", headerName: "Paid", width: 120 },
-    { field: "col8", headerName: "Status", width: 150,  renderCell: (params) => (
-      <div className="flex items-center  h-full">
-      <button
-        variant="contained"
-        color="primary"
-        className={`bg-blue-800 flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-bold leading-none ${params.value === "FULL PAID" ? 'bg-green-700' : params.value === "UNPAID" ? 'bg-red-700' : 'bg-orange-600'}`}
-      >
-        {params.value}
-      </button>
-    </div>
-    ), },
-    { field: "col9", headerName: "Cashier", width: 150 },
-    { field: "col10", headerName: "Created At", width: 200 },
+    { field: "col7", headerName: "Paid", width: 100 },
     {
-      field: "col11",
+      field: "col8",
+      headerName: "Status",
+      width: 150,
+      renderCell: (params) => (
+        <div className="flex items-center  h-full">
+          <button
+            variant="contained"
+            color="primary"
+            className={`bg-blue-800 flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-bold leading-none ${
+              params.value === "FULL PAID"
+                ? "bg-green-700"
+                : params.value === "UNPAID"
+                ? "bg-red-700"
+                : "bg-orange-600"
+            }`}
+          >
+            {params.value}
+          </button>
+        </div>
+      ),
+    },
+    { field: "col9", headerName: "Cashier", width: 150 },
+
+    {
+      field: "col10",
       headerName: "Invoice",
-      width: 200,
+      width: 120,
       renderCell: (params) => (
         <div className="flex items-center h-full">
           <button
@@ -66,6 +90,23 @@ const Sales = () => {
             onClick={() => handleInvoice(params.row.id)}
           >
             Invoice
+          </button>
+        </div>
+      ),
+    },
+    {
+      field: "col11",
+      headerName: "Pay Due",
+      width: 120,
+      renderCell: (params) => (
+        <div className="flex items-center h-full">
+          <button
+            variant="contained"
+            color="primary"
+            className="bg-[#258f28] flex rounded-[3px] h-6 items-center px-2 text-[13px] font-medium"
+            onClick={() => handlePayModal(params.row.id)}
+          >
+            Pay Now
           </button>
         </div>
       ),
@@ -88,16 +129,72 @@ const Sales = () => {
     const billingName = selectSaleRecord.buyerName;
     const phoneNumber = selectSaleRecord.phoneNumber;
     const discount = selectSaleRecord.discount;
-    const grandTotal = total - discount; 
+    const grandTotal = total - discount;
     const paidAmount = selectSaleRecord.paidAmount;
     const invoiceNumber = selectSaleRecord.invoiceNumber;
-  
-    
 
-    
-    
+    generatePDF(
+      invoiceItems,
+      total,
+      currentUserName,
+      billingName,
+      phoneNumber,
+      null,
+      discount,
+      grandTotal,
+      paidAmount,
+      invoiceNumber
+    );
+  };
 
-    generatePDF(invoiceItems, total, currentUserName, billingName, phoneNumber,null, discount, grandTotal, paidAmount, invoiceNumber);
+  const handlePayModal = (saleId) => {
+    const selectSaleRecord = filteredSales.find(
+      (sale) => sale.saleId === saleId
+    );
+    const finalTotal = selectSaleRecord.totalAmount - selectSaleRecord.discount;
+    const dueBalance = finalTotal - selectSaleRecord.paidAmount;
+
+    setIsPayModalOpen(true);
+    setSelectedSale({
+      saleId: saleId,
+      invoiceNumber: selectSaleRecord.invoiceNumber,
+      totalAmount: finalTotal,
+      paidAmount: selectSaleRecord.paidAmount,
+      dueBalance,
+      bulkBuyerId: selectSaleRecord.bulkBuyerId,
+    });
+  };
+
+  const handlePaymentSubmission = async ({
+    saleId,
+    bulkBuyerId,
+    payAmount,
+  }) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/payment/create",
+        {
+          saleId,
+          bulkBuyerId,
+          payAmount,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      if (!res.data.success) {
+        showErrorToast("Payment added & sale record update failed!");
+      }
+
+      showSuccessToast("Payment added & sale record update successfully!");
+      dispatch(fetchSales());
+    } catch (error) {
+      showErrorToast("Payment added & sale record update failed!");
+    }
   };
 
   if (error || !sales) {
@@ -114,13 +211,16 @@ const Sales = () => {
       {loading ? (
         <div className="py-4 px-4">Loading...</div>
       ) : (
-        <div className="px-0 md:px-8 py-4 flex flex-col">
+        <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border">
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold">Sale Records</h1>
+            <h1 className="text-2xl font-semibold">Outstanding Sales</h1>
           </div>
 
-          <div style={{ width: "100%", maxWidth: "fit-content", height: "700px" }} className="mt-8">
+          <div
+            style={{ width: "100%", maxWidth: "fit-content", height: "700px" }}
+            className="mt-8"
+          >
             <DataGrid
               rows={rows}
               columns={columns}
@@ -175,10 +275,17 @@ const Sales = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
           />
+          {/* Pay Modal */}
+          <DuePayModal
+            isOpen={isPayModalOpen}
+            onClose={() => setIsPayModalOpen(false)}
+            saleDetails={selectedSale}
+            onCreate={handlePaymentSubmission}
+          />
         </div>
       )}
     </MainLayout>
   );
 };
 
-export default Sales;
+export default DueSales;

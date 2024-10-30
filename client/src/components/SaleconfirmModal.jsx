@@ -57,6 +57,11 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
     showErrorToast("Please select a registered customer.");
     return;
   }
+
+  if (isBulkBuyer && formData.paidAmount == "") {
+    showErrorToast("Paid amount cannot be empty.");
+    return;
+  }
     
   if (isBulkBuyer && formData.paidAmount > grandTotal) {
     showErrorToast("Paid amount cannot exceed the total.");

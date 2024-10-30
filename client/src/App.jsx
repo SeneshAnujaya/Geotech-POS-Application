@@ -12,6 +12,7 @@ import Orders from "./pages/Orders";
 import Sales from "./pages/Sales";
 import Users from './pages/Users';
 import WholesaleClients from './pages/WholesaleClients';
+import DueSales from './pages/DueSales';
 
 const theme = createTheme({
   palette: {
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="/categories" element={<Category/>}/>
           <Route path="/products" element={<Products/>}/>
           <Route path="/sales" element={<Sales/>}/>
+          <Route path="/duesales" element={<DueSales/>}/>
           <Route path="/Wholesales" element={<WholesaleClients/>}/>
           <Route path="/users" element={<Users/>}/>
         </Route>

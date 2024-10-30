@@ -98,7 +98,7 @@ const Dashboard = () => {
       <button
         variant="contained"
         color="primary"
-        className={`bg-blue-800 flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-bold leading-none ${params.value === "FULL PAID" ? 'bg-green-700' : 'bg-orange-600' }`}
+        className={`bg-blue-800 flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[10px] font-bold leading-none ${params.value === "FULL PAID" ? 'bg-green-700' : params.value === "UNPAID" ? 'bg-red-700' : 'bg-orange-600'}`}
       >
         {params.value}
       </button>

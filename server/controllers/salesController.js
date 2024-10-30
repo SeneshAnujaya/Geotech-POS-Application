@@ -31,21 +31,17 @@ export const recordSale = async (req, res) => {
         });
 
         if (!product) {
-          return res
-            .status(400)
-            .json({
-              success: false,
-              message: `Product with Code ${item.sku} not found`,
-            });
+          return res.status(400).json({
+            success: false,
+            message: `Product with Code ${item.sku} not found`,
+          });
         }
 
         if (product.quantity < item.cartQuantity) {
-          return res
-            .status(400)
-            .json({
-              success: false,
-              message: `Not enough stock for product: ${product.name}`,
-            });
+          return res.status(400).json({
+            success: false,
+            message: `Not enough stock for product: ${product.name}`,
+          });
         }
 
         await prisma.salesItem.create({
@@ -102,12 +98,10 @@ export const getTotalRevenue = async (req, res) => {
       },
     });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        totalRevenue: totalRevenue._sum.totalAmount || 0,
-      });
+    res.status(200).json({
+      success: true,
+      totalRevenue: totalRevenue._sum.totalAmount || 0,
+    });
   } catch (error) {
     console.error(error);
     res
@@ -190,109 +184,143 @@ export const getMonthlySaleCount = async (req, res) => {
 const generateInvoiceNumber = async (prisma) => {
   const date = new Date();
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-     // Get the count of sales for today to use as a sequential number
-     const salesCount = await prisma.sale.count({
-      where: {
-          createdAt: {
-              gte: new Date(year, date.getMonth(), day), // Start of the day
-              lt: new Date(year, date.getMonth(), day + 1) // Start of the next day
-          }
-      }
+  // Get the count of sales for today to use as a sequential number
+  const salesCount = await prisma.sale.count({
+    where: {
+      createdAt: {
+        gte: new Date(year, date.getMonth(), day), // Start of the day
+        lt: new Date(year, date.getMonth(), day + 1), // Start of the next day
+      },
+    },
   });
 
   // Format the invoice number
-  const invoiceNumber = `INV-${year}-${month}-${day}-${String(salesCount + 1).padStart(3, '0')}`;
+  const invoiceNumber = `INV-${year}-${month}-${day}-${String(
+    salesCount + 1
+  ).padStart(3, "0")}`;
   return invoiceNumber;
-}
-
+};
 
 // Record sale and update stock when print invoice
 export const createSaleRecordWithStockUpdate = async (req, res) => {
-    const { userId, items,  clientName, phoneNumber, discount, paidAmount, grandTotal, isBulkBuyer, selectedClientId } = req.body;
+  const {
+    userId,
+    items,
+    clientName,
+    phoneNumber,
+    discount,
+    paidAmount,
+    grandTotal,
+    isBulkBuyer,
+    selectedClientId,
+  } = req.body;
 
-    if (!userId || !items || !Array.isArray(items) || items.length === 0 || !clientName || !phoneNumber) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid input data" });
-      }
+  if (
+    !userId ||
+    !items ||
+    !Array.isArray(items) ||
+    items.length === 0 ||
+    !clientName ||
+    !phoneNumber
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid input data" });
+  }
 
-    try {
-        // Start transaction
-        const sale = await prisma.$transaction(async (prisma) => {
-          
-          // generate Invoice Number
-          const invoiceNumber = await generateInvoiceNumber(prisma);
-          
-          
-            // step one - create sale record
-            const newSale = await prisma.sale.create({
-                data: {
-                  userId: parseInt(userId),
-                  totalAmount: items.reduce(
-                    (total, item) => total + item.price * item.cartQuantity,
-                    0
-                  ),
-                  paidAmount,
-                  paymentStatus: paidAmount >= grandTotal ? "FULL PAID" : "PARTIALLY_PAID",
-                 
-                  buyerName: clientName,
-                  phoneNumber,
-                  bulkBuyerId: isBulkBuyer ? Number(selectedClientId) : null,
-                  discount: discount,
-                  invoiceNumber
+  console.log(typeof paidAmount);
+  
 
-                },
-              });
+  try {
+    // Start transaction
+    const sale = await prisma.$transaction(async (prisma) => {
+      // generate Invoice Number
+      const invoiceNumber = await generateInvoiceNumber(prisma);
 
-              for(const item of items) {
-                const product = await prisma.product.findUnique({
-                    where: {sku: item.sku}
-                });
+      // step one - create sale record
+      const newSale = await prisma.sale.create({
+        data: {
+          userId: parseInt(userId),
+          totalAmount: items.reduce(
+            (total, item) => total + item.price * item.cartQuantity,
+            0
+          ),
+          paidAmount,
+          paymentStatus:
+            Number(paidAmount) === 0
+              ? "UNPAID"
+              : Number(paidAmount) >= Number(grandTotal)
+              ? "FULL PAID"
+              : "PARTIALLY_PAID",
+          buyerName: clientName,
+          phoneNumber,
+          bulkBuyerId: isBulkBuyer ? Number(selectedClientId) : null,
+          discount: discount,
+          invoiceNumber,
+        },
+      });
 
-                if(!product) {
-                    throw new Error(`Product with SKU ${item.sku} not found`);
-                }
-
-                if(product.quantity < item.cartQuantity) {
-                    throw new Error(`Not enough stock for product: ${product.name}`); 
-                }
-
-                // Create SalesItem
-                await prisma.salesItem.create({
-                    data: {
-                        saleId: newSale.saleId,
-                        productId: item.productId,
-                        quantity: item.cartQuantity,
-                        price: item.price
-                    },
-                });
-
-                // Update Stock
-                await prisma.product.update({
-                    where: {sku: item.sku},
-                    data: {quantity: product.quantity - item.cartQuantity }
-                });
-            }
-
-            if(isBulkBuyer) {
-              const bulkBuyer = await prisma.bulkBuyer.update({
-                where: { bulkBuyerId: Number(selectedClientId)},
-                data: {outstandingBalance: {
-                  increment: grandTotal - paidAmount
-                }}
-              })
-            }
-            return newSale;
+      for (const item of items) {
+        const product = await prisma.product.findUnique({
+          where: { sku: item.sku },
         });
 
-        res.status(201).json({success: true, message: "Sale record and stock updated successfully", sale})
-     
-        
-    } catch (error) {
-        res.status(500).json({success: false, message: error.message || "Sale record and stock updated Transaction failed"});
-        console.error("Transaction failed: ", error.message);
-    }
-}
+        if (!product) {
+          throw new Error(`Product with SKU ${item.sku} not found`);
+        }
+
+        if (product.quantity < item.cartQuantity) {
+          throw new Error(`Not enough stock for product: ${product.name}`);
+        }
+
+        // Create SalesItem
+        await prisma.salesItem.create({
+          data: {
+            saleId: newSale.saleId,
+            productId: item.productId,
+            quantity: item.cartQuantity,
+            price: item.price,
+          },
+        });
+
+        // Update Stock
+        await prisma.product.update({
+          where: { sku: item.sku },
+          data: { quantity: product.quantity - item.cartQuantity },
+        });
+      }
+
+      if (isBulkBuyer) {
+        const bulkBuyer = await prisma.bulkBuyer.update({
+          where: { bulkBuyerId: Number(selectedClientId) },
+          data: {
+            outstandingBalance: {
+              increment: grandTotal - paidAmount,
+            },
+          },
+        });
+      }
+      return newSale;
+    });
+
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: "Sale record and stock updated successfully",
+        sale,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message:
+          error.message || "Sale record and stock updated Transaction failed",
+      });
+    console.error("Transaction failed: ", error.message);
+  }
+};

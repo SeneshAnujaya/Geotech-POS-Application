@@ -1,6 +1,7 @@
 import {
   Album,
   Archive,
+  BadgeAlertIcon,
   Boxes,
   BoxIcon,
   ClipboardCheckIcon,
@@ -10,6 +11,7 @@ import {
   Menu,
   ShoppingBag,
   UserCircle,
+  Users,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSidebarCollapsed } from "../redux/uiSetting/uiSettingsSlice";
@@ -140,9 +142,15 @@ const Sidebar = () => {
           label="Sales"
           isCollapsed={isSidebarCollapsed}
         />
+          <SidebarLink
+          href="/duesales"
+          icon={BadgeAlertIcon}
+          label="Outstanding Sales"
+          isCollapsed={isSidebarCollapsed}
+        />
          <SidebarLink
           href="/Wholesales"
-          icon={Boxes}
+          icon={Users}
           label="Wholesale Clients"
           isCollapsed={isSidebarCollapsed}
         />

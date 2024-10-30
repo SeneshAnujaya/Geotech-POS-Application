@@ -82,8 +82,8 @@ const WholesaleClients = () => {
   ];
 
   const tableApiEndpoints = {
-    delete: "http://localhost:3000/api/user/deleteuser",
-    update: "http://localhost:3000/api/user/updateuser",
+    // delete: "http://localhost:3000/api/user/deleteuser",
+    // update: "http://localhost:3000/api/user/updateuser",
   };
 
   const handleCreateWholesaleClient = async (formData) => {
