@@ -63,11 +63,13 @@ const WholesaleClients = () => {
       field: "col4",
       headerName: "Email",
       width: 200,
+      editable: (params) => params.row.id === editableRowId,
     },
     {
       field: "col5",
       headerName: "Company Name",
       width: 200,
+      editable: (params) => params.row.id === editableRowId,
     },
     {
       field: "col6",
@@ -82,12 +84,12 @@ const WholesaleClients = () => {
   ];
 
   const tableApiEndpoints = {
-    // delete: "http://localhost:3000/api/user/deleteuser",
-    // update: "http://localhost:3000/api/user/updateuser",
+    delete: "http://localhost:3000/api/wholesaleClient/delete",
+    update: "http://localhost:3000/api/wholesaleClient/update",
   };
 
   const handleCreateWholesaleClient = async (formData) => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const res = await axios.post(
         "http://localhost:3000/api/wholesaleClient/add",
@@ -102,12 +104,13 @@ const WholesaleClients = () => {
       const data = res.data;
       if (!data.success) {
         showErrorToast(data.message || "Error occurred");
-        setLoading(false);
+        // setLoading(false);
         return;
       }
-      setLoading(false);
+      // setLoading(false);
       // getusers();
       showSuccessToast("Client created successfully!");
+      dispatch(fetchWholesaleClients());
     } catch (error) {
       console.log(error);
 
@@ -118,7 +121,7 @@ const WholesaleClients = () => {
       } else {
         showErrorToast("An unexpected error occurred");
       }
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

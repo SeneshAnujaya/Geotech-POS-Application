@@ -51,6 +51,7 @@ model Product {
   brandName   String
   categoryId  Int
   warrantyPeriod String
+  isDeleted     Boolean   @default(false)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -63,7 +64,7 @@ model Product {
 model Sale {
   saleId      Int       @id @default(autoincrement())
   invoiceNumber String  @default("TEMP-INV-DEFAULT")
-  userId      Int
+  userId      Int?
   totalAmount Decimal    @db.Decimal(10, 2)
   discount    Decimal @db.Decimal(10, 2) @default(0.00)
   paidAmount Decimal @db.Decimal(10, 2) @default(0.00)
@@ -71,8 +72,9 @@ model Sale {
   createdAt   DateTime   @default(now())
   buyerName   String?  
   phoneNumber String?
+  cashierName  String?
    
-  user        User       @relation(fields: [userId], references: [id])
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
   SalesItem   SalesItem[]
 
   bulkBuyerId Int?

@@ -249,17 +249,14 @@ const Orders = () => {
     //   showErrorToast("Phone Number is Required");
     //   return;
     // }
-
-    
- 
-
+  
     try {
 
        const res = await axios.post('http://localhost:3000/api/sales/createSaleRecordWithStockUpdate', {
         userId : currentUserId,
         items: itemsToRecord,
         isBulkBuyer: isBulkBuyer,
-        clientName, phoneNumber:phonenumber, discount,total, paidAmount, selectedClientId, grandTotal
+        clientName, phoneNumber:phonenumber, discount,total, paidAmount, selectedClientId, grandTotal, currentUserName
        });
 
      if(res.status === 201 && res.data.success) {

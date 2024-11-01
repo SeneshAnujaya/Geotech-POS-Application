@@ -135,7 +135,7 @@ export const getDailyRevenue = async (req, res) => {
     });
 
     const dailyRevenue = salesToday.reduce(
-      (total, sale) => total + sale.totalAmount,
+      (total, sale) => total + parseFloat(sale.totalAmount.toString()),
       0
     );
 
@@ -216,6 +216,7 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
     grandTotal,
     isBulkBuyer,
     selectedClientId,
+    currentUserName
   } = req.body;
 
   if (
@@ -231,7 +232,6 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
       .json({ success: false, message: "Invalid input data" });
   }
 
-  console.log(typeof paidAmount);
   
 
   try {
@@ -260,6 +260,8 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
           bulkBuyerId: isBulkBuyer ? Number(selectedClientId) : null,
           discount: discount,
           invoiceNumber,
+          cashierName: currentUserName
+
         },
       });
 

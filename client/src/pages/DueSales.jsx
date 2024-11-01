@@ -41,7 +41,7 @@ const DueSales = () => {
     col6: sale.totalAmount - sale.discount,
     col7: sale.paidAmount,
     col8: sale.paymentStatus,
-    col9: sale.user.name,
+    col9: sale.user?.name || sale.cashierName || "N/A",
     // col10: new Date(sale.createdAt).toLocaleString(),
   }));
 
@@ -125,7 +125,7 @@ const DueSales = () => {
     }));
 
     const total = parseFloat(selectSaleRecord.totalAmount);
-    const currentUserName = selectSaleRecord.user.name;
+    const currentUserName = selectSaleRecord.user?.name || selectSaleRecord.cashierName || "N/A";
     const billingName = selectSaleRecord.buyerName;
     const phoneNumber = selectSaleRecord.phoneNumber;
     const discount = selectSaleRecord.discount;

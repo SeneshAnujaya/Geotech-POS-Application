@@ -82,7 +82,7 @@ const Dashboard = () => {
     col2: sale.buyerName,
     col3: sale.totalAmount,
     col4: sale.paidAmount,
-    col5: sale.user.name,
+    col5: sale.user?.name || sale.cashierName || "N/A",
     col6: sale.paymentStatus,
     col7: new Date(sale.createdAt),
   }));

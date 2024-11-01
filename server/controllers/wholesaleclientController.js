@@ -68,3 +68,77 @@ export const getBulkBuyers = async (req, res, next) => {
       res.status(500).json({ success: false, message: "Error fetching bulkBuyers info" });
     }
   };
+
+// Update Wholesale Clients
+
+export const updateBulkBuyer = async (req, res) => {
+    const { id } = req.params;
+    const { col2: name, col3: phoneNumber, col4:email, col5:companyName } = req.body;
+  
+    try {
+      const bulkBuyer = await prisma.bulkBuyer.findUnique({
+        where: { 
+            bulkBuyerId: parseInt(id) },
+      });
+  
+      if (!bulkBuyer) {
+        return res.status(404).json({ success: false, message: "Client is not found" });
+      }
+  
+      const updatedBulkBuyer = await prisma.bulkBuyer.update({
+        where: { bulkBuyerId: parseInt(id) },
+        data: { name, phoneNumber, email, companyName },
+      });
+  
+      if (updatedBulkBuyer) {
+        return res
+          .status(200)
+          .json({
+            success: true,
+            message: "Wholesale client updated successfully",
+            data: updatedBulkBuyer, 
+          });
+      }
+    } catch (error) {
+      console.log(error);
+  
+      res.status(500).json({ success: false, message: "Error updating client" });
+    }
+  };
+
+
+//   Delete Wholesale Client
+
+  export const deleteBulkBuyer = async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const bulkBuyer = await prisma.bulkBuyer.findUnique({
+        where: { bulkBuyerId: Number(id) },
+      });
+  
+      if (!bulkBuyer) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Client not found" });
+      }
+
+      if(bulkBuyer.outstandingBalance > 0) {
+        return res
+        .status(400)
+        .json({ success: false, message: "Cannot delete BulkBuyer with outstanding balance." });
+        
+      }
+  
+      await prisma.bulkBuyer.delete({
+        where: { bulkBuyerId: Number(id) },
+      });
+  
+      res
+        .status(200)
+        .json({ success: true, message: "Client deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Error deleting client!" });
+    }
+  };
+  

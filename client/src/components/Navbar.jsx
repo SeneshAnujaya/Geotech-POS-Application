@@ -2,6 +2,7 @@ import { Bell, Menu, Settings, Sun } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { setIsSidebarCollapsed } from '../redux/uiSetting/uiSettingsSlice';
+import UserPic from '../assets/user-placeholder.png';
 
 const Navbar = () => {
     const { isSidebarCollapsed } = useSelector((state) => state.uisetting);
@@ -11,6 +12,13 @@ const Navbar = () => {
     const toggleSidebar = () => {
       dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
     }
+
+    const { currentUser } = useSelector((state) => state.user);
+
+ 
+
+    const currentUserName = currentUser.rest.name;
+    const currentUserRole = currentUser.rest.role;
 
   return (
     <div className='flex justify-between items-center w-full mb-7 px-4'>
@@ -30,19 +38,24 @@ const Navbar = () => {
         {/* right side */}
         <div className='flex justify-between items-center gap-5'>
             <div  className='hidden md:flex justify-between items-center gap-5'>
-                <div>
+                {/* <div>
                     <button onClick={() => {}}>
                         <Sun className='cursor-pointer text-gray-100' size={24}/>
                     </button>
-                </div>
-                <div className='relative'>
+                </div> */}
+                {/* <div className='relative'>
                     <Bell className='cursor-pointer text-gray-500' size={24}/>
                     <span className='absolute -top-2 -right-2 inline-flex items-center justify-center px-[0.4rem] py-1 text-xs font-semibold leading-none text-red-100 bg-red-500 rounded-full'>4</span>
-                </div>
-                <hr  className='w-0 h-7 border border-solid border-1 border-gray-600 mx-3'/>
+                </div> */}
+                {/* <hr  className='w-0 h-7 border border-solid border-1 border-gray-600 mx-3'/> */}
                 <div className='flex items-center gap-3 cursor-pointer'>
-                    <div className='w-9 h-9'>image</div>
-                    <span className='font-semibold text-base'>Admin</span>
+                    <div className='w-fit'>
+                    <img src={UserPic} alt="category-pic" style={{width: '42px', height:'42px', borderRadius:'50%', objectFit:"cover"}}/>
+                    </div>
+                    <div>
+                    <span className='font-medium text-[1.05rem]'>{currentUserName}</span>
+                    <p className='text-[0.75rem] uppercase text-blue-300'>{currentUserRole}</p>
+                    </div>
                 </div>
             </div>
             <Link to="/setting">

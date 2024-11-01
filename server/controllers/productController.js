@@ -75,6 +75,7 @@ export const addProduct = async (req, res, next) => {
 export const getAllProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
+      where: { isDeleted: false },
       include: {
         category: true, // This will include the category data in the product
       },
@@ -162,7 +163,7 @@ export const updateProduct = async (req, res) => {
 
 
 
-// Delete Product
+// SOFT Delete Product
 export const deleteProduct = async (req, res) => {
   const { sku } = req.params;
 
@@ -177,9 +178,11 @@ export const deleteProduct = async (req, res) => {
         .json({ success: false, message: "Product not found" });
     }
 
-    await prisma.product.delete({
-      where: { sku: sku },
-    });
+      // Soft delete: Set isDeleted to true
+      await prisma.product.update({
+        where: { sku: sku },
+        data: { isDeleted: true },
+      });
 
     res
       .status(200)
