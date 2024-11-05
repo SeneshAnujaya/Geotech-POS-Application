@@ -1,50 +1,62 @@
-import React, { useEffect } from "react";
+import React, { useEffect }  from "react";
 import MainLayout from "../components/MainLayout";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import axios from "axios";
 import {
   showErrorToast,
   showSuccessToast,
 } from "../components/ToastNotification";
-import { PlusCircleIcon } from "lucide-react";
+import {  PlusCircleIcon } from "lucide-react";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import UserAddModal from "../components/UserAddModal";
 import DataTable from "../components/DataTable";
 import { useSelector } from "react-redux";
+import { useFetchUsersQuery } from "../redux/apiSlice";
+import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const Users = () => {
-  const [users, setusers] = useState([]);
+  // const [users, setusers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const {data: users = {data: []}, error, isLoading } = useFetchUsersQuery(undefined, {
+  });
+
   const { currentUser } = useSelector((state) => state.user);
+   const role = currentUser.rest.role;
 
-  const role = currentUser.rest.role;
+   const [showLoader, setShowLoader] = useState(true);
 
-  const getusers = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("http://localhost:3000/api/user/getusers");
+   useEffect(() => {
+     const loaderTimer = setTimeout(() => {
+       if (!isLoading) setShowLoader(false);
+     }, 100); 
+ 
+     return () => clearTimeout(loaderTimer);
+   }, [isLoading]);
 
-      if (res.data.success) {
-        setLoading(false);
-        const users = res.data.data;
-        setusers(users);
-      } else {
-        showErrorToast("Failed to get users");
-      }
-    } catch (error) {
-      setLoading(false);
-      showErrorToast("server Error");
-    }
-  };
+  // const getusers = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.get("http://localhost:3000/api/user/getusers");
 
-  useEffect(() => {
-    getusers();
-  }, []);
+  //     if (res.data.success) {
+  //       setLoading(false);
+  //       const users = res.data.data;
+  //       // setusers(users);
+  //     } else {
+  //       showErrorToast("Failed to get users");
+  //     }
+  //   } catch (error) {
+  //     setLoading(false);
+  //     showErrorToast("server Error");
+  //   }
+  // };
+
+
 
   // DATA GRID ROWS COLUMNS
-  const rows = users.map((user) => ({
+  const rows = users.data.map((user) => ({
     id: user.id,
     col1: user.id,
     col2: user.name,
@@ -126,11 +138,28 @@ const Users = () => {
     }
   };
 
+  const renderTableSkeleton = () => (
+    <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+      {Array.from(new Array(4)).map((_, rowIndex) => (
+        <Box key={rowIndex} display="flex" alignItems="center" mb={1}>
+          {Array.from(new Array(5)).map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rounded"
+              width={300} 
+              height={60}
+              sx={{ marginRight: 1 }}
+              animation="wave"
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
+
   return (
     <MainLayout>
-      {loading ? (
-        <div className="py-4 px-4">Loading...</div>
-      ) : (
+    
         <div className="px-0 md:px-8 py-4 flex flex-col">
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
@@ -146,14 +175,18 @@ const Users = () => {
             )}
           </div>
 
+          {showLoader || isLoading ? (  renderTableSkeleton()) :( 
+            <>
           <div>
             <div className="w-full max-w-fit mt-8">
+            <Suspense fallback={<CircularProgress color="primary" />}>
               <DataTable
                 rows={rows}
                 columns={columns}
                 apiEndpoints={tableApiEndpoints}
                 role={role}
               />
+              </Suspense>
             </div>
           </div>
           {/* MODAL */}
@@ -162,8 +195,10 @@ const Users = () => {
             onClose={() => setIsModalOpen(false)}
             onCreate={handleCreateUser}
           />
+          </>
+          )}
         </div>
-      )}
+     
     </MainLayout>
   );
 };

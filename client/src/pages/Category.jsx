@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,Suspense, lazy } from "react";
 import MainLayout from "../components/MainLayout";
 import {
   DataGrid,
@@ -24,10 +24,11 @@ import {
   showSuccessToast,
 } from "../components/ToastNotification";
 import axios from "axios";
+import { useFetchProductsQuery } from "../redux/apiSlice";
+import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const Category = () => {
-  // const [loading, setLoading] = useState(false);
-
+ 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editableRowId, setEditableRowId] = useState(null);
   const [editedRowData, setEditedRowData] = useState({});
@@ -37,9 +38,11 @@ const Category = () => {
 
   const [uploadPercentage, setUploadPercentage] = useState(0);
 
-  const { categories, loading, error } = useSelector(
-    (state) => state.categories
-  );
+
+
+  const {data: categories = {data: []}, error, isLoading } = useFetchProductsQuery(undefined, {
+    refetchOnMountOrArgChange: false
+  });
 
   const { currentUser } = useSelector(
     (state) => state.user
@@ -47,17 +50,22 @@ const Category = () => {
 
   const role = currentUser.rest.role || 'EMPLOYEE';
 
+  const [showLoader, setShowLoader] = useState(true);
 
-  const dispatch = useDispatch();
-  
+  // Delay loader removal slightly to avoid flashing
+  useEffect(() => {
+    const loaderTimer = setTimeout(() => {
+      if (!isLoading) setShowLoader(false);
+    }, 100); // 500ms delay, adjust as needed
+
+    return () => clearTimeout(loaderTimer);
+  }, [isLoading]);
+
+
 
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (categories) {
-      const updatedRows = categories.map((category) => ({
+    if (categories.data) {
+      const updatedRows = categories.data.map((category) => ({
         id: category.categoryId,
         col1: category.categoryId,
         col2: category.categoryPic,
@@ -68,12 +76,6 @@ const Category = () => {
     }
   }, [categories]);
 
-  // const rows = categories.map((category) => ({
-  //   id: category.categoryId,
-  //   col1: category.categoryId,
-  //   col2: category.name,
-  //   col3: new Date(category.createdAt).toLocaleString(),
-  // }));
 
   
   
@@ -209,7 +211,6 @@ if(role === "ADMIN") {
     }
   };
 
-  // console.log(uploadPercentage);
   
 
   const handleDeleteClick = async (id) => {
@@ -313,6 +314,26 @@ if(role === "ADMIN") {
     
   }
 
+  // loading skeleton
+  const renderTableSkeleton = () => (
+    <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+      {Array.from(new Array(6)).map((_, rowIndex) => (
+        <Box key={rowIndex} display="flex" alignItems="center" mb={1}>
+          {Array.from(new Array(4)).map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rounded"
+              width={300} 
+              height={50}
+              sx={{ marginRight: 1 }}
+              animation="wave"
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
+
   if (error || !categories) {
     return (
       <MainLayout>
@@ -322,7 +343,7 @@ if(role === "ADMIN") {
   }
   return (
     <MainLayout>
-      {loading ? (
+      {isLoading ? (
         <div className="py-4 px-4">Loading...</div>
       ) : (
         <div className="px-0 md:px-8 py-4 flex flex-col">
@@ -341,8 +362,10 @@ if(role === "ADMIN") {
             }
            
           </div>
-
+            {showLoader ||isLoading ? (renderTableSkeleton()) : (
+              <>
           <div style={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+          <Suspense fallback={<CircularProgress color="primary" />}>
             <DataGrid
               rows={rows}
               columns={columns}
@@ -407,6 +430,7 @@ if(role === "ADMIN") {
               getRowHeight={() => 'auto'}
               // onCellEditStop={handleRowEditChange}
             />
+            </Suspense>
           </div>
           {/* MODAL */}
           <CategoryModal
@@ -415,6 +439,8 @@ if(role === "ADMIN") {
             onCreate={handleCreateCategory}
             percentage={uploadPercentage}
           />
+          </>
+           )}
         </div>
       )}
     </MainLayout>

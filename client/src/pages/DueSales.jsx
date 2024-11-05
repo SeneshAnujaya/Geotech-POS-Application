@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,22 +11,33 @@ import {
   showErrorToast,
   showSuccessToast,
 } from "../components/ToastNotification";
+import { useFetchSalesQuery } from "../redux/apiSlice";
+import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const DueSales = () => {
-  // const [loading, setLoading] = useState(false);
+  
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState({});
 
-  const { sales, loading, error } = useSelector((state) => state.sales);
-  const dispatch = useDispatch();
+  const {data: sales = {data: []}, error, isLoading } = useFetchSalesQuery(undefined, {
+    refetchOnMountOrArgChange: true
+  });
+
+  const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchSales());
-  }, [dispatch]);
+    const loaderTimer = setTimeout(() => {
+      if (!isLoading) setShowLoader(false);
+    }, 100); 
 
-  const filteredSales = sales.filter(
+    return () => clearTimeout(loaderTimer);
+  }, [isLoading]);
+
+
+
+  const filteredSales = sales.data.filter(
     (sale) =>
       sale.paymentStatus === "UNPAID" || sale.paymentStatus === "PARTIALLY_PAID"
   );
@@ -114,7 +125,7 @@ const DueSales = () => {
   ];
 
   const handleInvoice = (saleId) => {
-    const selectSaleRecord = sales.find((sale) => sale.saleId === saleId);
+    const selectSaleRecord = sales.data.find((sale) => sale.saleId === saleId);
 
     const invoiceItems = selectSaleRecord.SalesItem.map((item) => ({
       sku: item.product.sku,
@@ -191,11 +202,31 @@ const DueSales = () => {
       }
 
       showSuccessToast("Payment added & sale record update successfully!");
-      dispatch(fetchSales());
     } catch (error) {
+      console.log(error);
+      
       showErrorToast("Payment added & sale record update failed!");
     }
   };
+
+  const renderTableSkeleton = () => (
+    <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+      {Array.from(new Array(6)).map((_, rowIndex) => (
+        <Box key={rowIndex} display="flex" alignItems="center" mb={1}>
+          {Array.from(new Array(7)).map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rounded"
+              width={300} 
+              height={60}
+              sx={{ marginRight: 1 }}
+              animation="wave"
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
 
   if (error || !sales) {
     return (
@@ -208,19 +239,22 @@ const DueSales = () => {
   }
   return (
     <MainLayout>
-      {loading ? (
-        <div className="py-4 px-4">Loading...</div>
-      ) : (
+     
+      
+    
         <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border">
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Outstanding Sales</h1>
           </div>
 
+          {showLoader || isLoading ? (  renderTableSkeleton()) :(
+            <>
           <div
             style={{ width: "100%", maxWidth: "fit-content", height: "700px" }}
             className="mt-8"
           >
+                    <Suspense fallback={<CircularProgress color="primary" />}>
             <DataGrid
               rows={rows}
               columns={columns}
@@ -268,6 +302,7 @@ const DueSales = () => {
                 },
               }}
             />
+            </Suspense>
           </div>
 
           {/* Invoice Modal */}
@@ -282,8 +317,10 @@ const DueSales = () => {
             saleDetails={selectedSale}
             onCreate={handlePaymentSubmission}
           />
+          </>
+          )}
         </div>
-      )}
+    
     </MainLayout>
   );
 };

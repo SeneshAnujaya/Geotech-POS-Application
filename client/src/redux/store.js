@@ -8,9 +8,10 @@ import salesReducer from './sales/saleSlice';
 import wholesaleClientReducer from './wholesaleclients/wholesaleclientSlice';
 import {persistReducer, persistStore} from 'redux-persist';
 import storage from "redux-persist/lib/storage";
+import apiSlice from './apiSlice';
 
 
-const rootReducer = combineReducers({user: userReducer, uisetting: uiSettingReducer, categories: categoryReducer, products: productsReducer, cart: cartReducer, sales: salesReducer, wholesaleClients: wholesaleClientReducer });
+const rootReducer = combineReducers({user: userReducer, uisetting: uiSettingReducer, categories: categoryReducer, products: productsReducer, cart: cartReducer, sales: salesReducer, wholesaleClients: wholesaleClientReducer, [apiSlice.reducerPath]: apiSlice.reducer });
 
 const persistConfig = {
     key: 'root',
@@ -25,7 +26,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }),
+    }).concat(apiSlice.middleware),
 });
 
 export const persistor = persistStore(store);

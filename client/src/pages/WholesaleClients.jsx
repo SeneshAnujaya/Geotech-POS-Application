@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import { useState } from "react";
 import axios from "axios";
@@ -12,20 +12,32 @@ import DataTable from "../components/DataTable";
 import { useDispatch, useSelector } from "react-redux";
 import WholesaleClientAddModal from "../components/WholesaleClientAddModal";
 import { fetchWholesaleClients } from "../redux/wholesaleclients/wholesaleclientSlice";
+import { useFetchWholesaleClientsQuery } from "../redux/apiSlice";
+import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const WholesaleClients = () => {
   const [users, setusers] = useState([]);
-  // const [loading, setLoading] = useState(true);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
-  const { wholesaleClients, loading, error } = useSelector((state) => state.wholesaleClients);
-  
-  const dispatch = useDispatch();
+ 
+
+  const {data: wholesaleClients = {data: []}, error, isLoading } = useFetchWholesaleClientsQuery(undefined, {
+    refetchOnMountOrArgChange: true
+  });
+
+  const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchWholesaleClients());
-  }, [dispatch]);
+    const loaderTimer = setTimeout(() => {
+      if (!isLoading) setShowLoader(false);
+    }, 100); 
+
+    return () => clearTimeout(loaderTimer);
+  }, [isLoading]);
+  
+
  
   
 
@@ -33,7 +45,7 @@ const WholesaleClients = () => {
 
 
   // DATA GRID ROWS COLUMNS
-  const rows = wholesaleClients.map((client) => ({
+  const rows = wholesaleClients.data.map((client) => ({
     id: client.bulkBuyerId,
     col1: client.bulkBuyerId,
     col2: client.name,
@@ -110,7 +122,7 @@ const WholesaleClients = () => {
       // setLoading(false);
       // getusers();
       showSuccessToast("Client created successfully!");
-      dispatch(fetchWholesaleClients());
+      // dispatch(fetchWholesaleClients());
     } catch (error) {
       console.log(error);
 
@@ -125,11 +137,30 @@ const WholesaleClients = () => {
     }
   };
 
+  const renderTableSkeleton = () => (
+    <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+      {Array.from(new Array(5)).map((_, rowIndex) => (
+        <Box key={rowIndex} display="flex" alignItems="center" mb={1}>
+          {Array.from(new Array(6)).map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rounded"
+              width={220} 
+              height={60}
+              sx={{ marginRight: 1 }}
+              animation="wave"
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
+
   return (
     <MainLayout>
-      {loading ? (
-        <div className="py-4 px-4">Loading...</div>
-      ) : (
+    
+      
+     
         <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border min-h-[800px]">
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
@@ -145,14 +176,19 @@ const WholesaleClients = () => {
             )}
           </div>
 
+            {showLoader || isLoading ? (  renderTableSkeleton()) :(
+              <>
           <div>
+
             <div className="w-full max-w-fit mt-8">
+            <Suspense fallback={<CircularProgress color="primary" />}>
               <DataTable
                 rows={rows}
                 columns={columns}
                 apiEndpoints={tableApiEndpoints}
                 role={role}
               />
+              </Suspense>
             </div>
           </div>
           {/* MODAL */}
@@ -161,8 +197,10 @@ const WholesaleClients = () => {
             onClose={() => setIsModalOpen(false)}
             onCreate={handleCreateWholesaleClient}
           />
+          </>
+           ) }
         </div>
-      )}
+     
     </MainLayout>
   );
 };

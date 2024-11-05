@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,Suspense, lazy  } from "react";
 import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +10,11 @@ import {
 } from "../components/ToastNotification";
 import axios from "axios";
 import ProductAddModal from "../components/ProductAddModal";
-import DataTable from "../components/DataTable";
+// import DataTable from "../components/DataTable";
+import { useFetchProductsQuery } from "../redux/apiSlice";
+import { CircularProgress, Box, Skeleton } from "@mui/material";
+
+const DataTable = lazy(() => import("../components/DataTable"));
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -19,23 +23,39 @@ const formatDate = (dateString) => {
 };
 
 const Products = () => {
-  // const [loading, setLoading] = useState(false);
-
+ 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { products, loading, error } = useSelector((state) => state.products);
+  // const { products, loading, } = useSelector((state) => state.products);
+
+  const {data: products = {data: []}, error, isLoading } = useFetchProductsQuery(undefined, {
+  });
+
 
   const { currentUser } = useSelector((state) => state.user);
 
   const role = currentUser.rest.role;
 
-  const dispatch = useDispatch();
+    // State for managing a guaranteed loading indicator
+    const [showLoader, setShowLoader] = useState(true);
 
-  useEffect(() => {
-    dispatch(fetchProducts());
-  }, [dispatch]);
+    // Delay loader removal slightly to avoid flashing
+    useEffect(() => {
+      const loaderTimer = setTimeout(() => {
+        if (!isLoading) setShowLoader(false);
+      }, 100); // 500ms delay, adjust as needed
+  
+      return () => clearTimeout(loaderTimer);
+    }, [isLoading]);
+  
 
-  const rows = products.map((product) => ({
+  // const dispatch = useDispatch();
+
+  // useEffect(() => {
+  //   dispatch(fetchProducts());
+  // }, [dispatch]);
+
+  const rows = products.data.map((product) => ({
     id: product.sku,
     col1: product.sku,
     col2: product.name,
@@ -101,6 +121,25 @@ const Products = () => {
     update: "http://localhost:3000/api/products/updateproduct",
   };
 
+  const renderTableSkeleton = () => (
+    <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+      {Array.from(new Array(4)).map((_, rowIndex) => (
+        <Box key={rowIndex} display="flex" alignItems="center" mb={1}>
+          {Array.from(new Array(5)).map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rounded"
+              width={300} 
+              height={50}
+              sx={{ marginRight: 1 }}
+              animation="wave"
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
+
   if (error || !products) {
     return (
       <MainLayout>
@@ -110,9 +149,7 @@ const Products = () => {
   }
   return (
     <MainLayout>
-      {loading ? (
-        <div className="py-4 px-4">Loading...</div>
-      ) : (
+
         <div className="px-0 md:px-8 py-4 flex flex-col">
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
@@ -128,14 +165,18 @@ const Products = () => {
             )}
           </div>
 
+          {showLoader || isLoading ? (  renderTableSkeleton()) :(
+
+            <>
           <div style={{ width: "100%", maxWidth:"fit-content" }} className="mt-8">
-           
+          <Suspense fallback={<CircularProgress color="primary" />}>
             <DataTable
               rows={rows}
               columns={columns}
               apiEndpoints={tableApiEndpoints}
               role={role}
             />
+            </Suspense>
           </div>
           {/* MODAL */}
           <ProductAddModal
@@ -143,8 +184,10 @@ const Products = () => {
             onClose={() => setIsModalOpen(false)}
             onCreate={handleCreateProduct}
           />
+          </>
+        )}
         </div>
-      )}
+  
     </MainLayout>
   );
 };

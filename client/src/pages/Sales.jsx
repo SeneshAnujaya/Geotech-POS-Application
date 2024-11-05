@@ -1,24 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSales } from "../redux/sales/saleSlice";
 import InvoiceModal from "../components/InvoiceModal";
 import generatePDF from "../components/generatePDF";
+import { useFetchSalesQuery } from "../redux/apiSlice";
+import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const Sales = () => {
-  // const [loading, setLoading] = useState(false);
-
+ 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { sales, loading, error } = useSelector((state) => state.sales);
-  const dispatch = useDispatch();
+  const {data: sales = {data: []}, error, isLoading } = useFetchSalesQuery(undefined, {
+  });
+
+  const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchSales());
-  }, [dispatch]);
+    const loaderTimer = setTimeout(() => {
+      if (!isLoading) setShowLoader(false);
+    }, 100); 
 
-  const rows = sales.map((sale) => ({
+    return () => clearTimeout(loaderTimer);
+  }, [isLoading]);
+
+
+  const rows = sales.data.map((sale) => ({
     id: sale.saleId,
     col1: sale.invoiceNumber,
     col2: sale.buyerName,
@@ -73,7 +81,7 @@ const Sales = () => {
   ];
 
   const handleInvoice = (saleId) => {
-    const selectSaleRecord = sales.find((sale) => sale.saleId === saleId);
+    const selectSaleRecord = sales.data.find((sale) => sale.saleId === saleId);
 
     const invoiceItems = selectSaleRecord.SalesItem.map((item) => ({
       sku: item.product.sku,
@@ -91,14 +99,28 @@ const Sales = () => {
     const grandTotal = total - discount; 
     const paidAmount = selectSaleRecord.paidAmount;
     const invoiceNumber = selectSaleRecord.invoiceNumber;
-  
-    
-
-    
-    
 
     generatePDF(invoiceItems, total, currentUserName, billingName, phoneNumber,null, discount, grandTotal, paidAmount, invoiceNumber);
   };
+
+  const renderTableSkeleton = () => (
+    <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
+      {Array.from(new Array(6)).map((_, rowIndex) => (
+        <Box key={rowIndex} display="flex" alignItems="center" mb={1}>
+          {Array.from(new Array(7)).map((_, colIndex) => (
+            <Skeleton
+              key={colIndex}
+              variant="rounded"
+              width={300} 
+              height={60}
+              sx={{ marginRight: 1 }}
+              animation="wave"
+            />
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
 
   if (error || !sales) {
     return (
@@ -111,16 +133,18 @@ const Sales = () => {
   }
   return (
     <MainLayout>
-      {loading ? (
-        <div className="py-4 px-4">Loading...</div>
-      ) : (
+      
+        
         <div className="px-0 md:px-8 py-4 flex flex-col">
           {/* Header bar */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Sale Records</h1>
           </div>
 
+          {showLoader || isLoading ? (  renderTableSkeleton()) :(
+            <>
           <div style={{ width: "100%", maxWidth: "fit-content", height: "700px" }} className="mt-8">
+          <Suspense fallback={<CircularProgress color="primary" />}>
             <DataGrid
               rows={rows}
               columns={columns}
@@ -168,6 +192,7 @@ const Sales = () => {
                 },
               }}
             />
+            </Suspense>
           </div>
 
           {/* Invoice Modal */}
@@ -175,8 +200,10 @@ const Sales = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
           />
+          </>
+            )}
         </div>
-      )}
+      
     </MainLayout>
   );
 };

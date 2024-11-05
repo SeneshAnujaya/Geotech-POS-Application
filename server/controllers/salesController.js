@@ -90,17 +90,31 @@ export const getAllSales = async (req, res) => {
   }
 };
 
+// Get Total Revenue
 export const getTotalRevenue = async (req, res) => {
   try {
-    const totalRevenue = await prisma.sale.aggregate({
-      _sum: {
+    const sales = await prisma.sale.findMany({
+      select: {
         totalAmount: true,
+        discount: true
       },
     });
 
+    const totalRevenue = sales.reduce((sum, sale) => {
+      const discount = Number(sale.discount) || 0;
+      const amountAfterDiscount = parseFloat(sale.totalAmount.toString()) - discount;
+      return sum + amountAfterDiscount;
+    }, 0);
+    
+    // const totalRevenue = await prisma.sale.aggregate({
+    //   _sum: {
+    //     totalAmount: true,
+    //   },
+    // });
+
     res.status(200).json({
       success: true,
-      totalRevenue: totalRevenue._sum.totalAmount || 0,
+      totalRevenue: Number(totalRevenue).toFixed(2),
     });
   } catch (error) {
     console.error(error);
@@ -122,6 +136,7 @@ export const getSalesCount = async (req, res) => {
   }
 };
 
+// Get Daily Revenue
 export const getDailyRevenue = async (req, res) => {
   try {
     const today = new Date();
@@ -134,10 +149,11 @@ export const getDailyRevenue = async (req, res) => {
       },
     });
 
-    const dailyRevenue = salesToday.reduce(
-      (total, sale) => total + parseFloat(sale.totalAmount.toString()),
-      0
-    );
+    const dailyRevenue = salesToday.reduce((total, sale) => {
+      const discount = Number(sale.discount) || 0;
+      const amountAfterDiscount = parseFloat(sale.totalAmount.toString()) - discount;
+      return total + amountAfterDiscount;
+    }, 0);
 
     res
       .status(200)
@@ -216,7 +232,7 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
     grandTotal,
     isBulkBuyer,
     selectedClientId,
-    currentUserName
+    currentUserName,
   } = req.body;
 
   if (
@@ -231,8 +247,6 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
       .status(400)
       .json({ success: false, message: "Invalid input data" });
   }
-
-  
 
   try {
     // Start transaction
@@ -260,8 +274,7 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
           bulkBuyerId: isBulkBuyer ? Number(selectedClientId) : null,
           discount: discount,
           invoiceNumber,
-          cashierName: currentUserName
-
+          cashierName: currentUserName,
         },
       });
 
@@ -308,21 +321,17 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
       return newSale;
     });
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Sale record and stock updated successfully",
-        sale,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Sale record and stock updated successfully",
+      sale,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message:
-          error.message || "Sale record and stock updated Transaction failed",
-      });
+    res.status(500).json({
+      success: false,
+      message:
+        error.message || "Sale record and stock updated Transaction failed",
+    });
     console.error("Transaction failed: ", error.message);
   }
 };
