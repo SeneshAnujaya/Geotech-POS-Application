@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 import ProductAddModal from "../components/ProductAddModal";
 // import DataTable from "../components/DataTable";
-import { useFetchProductsQuery } from "../redux/apiSlice";
+import { useFetchProductsQuery, useCreateProductMutation } from "../redux/apiSlice";
 import { CircularProgress, Box, Skeleton } from "@mui/material";
 
 const DataTable = lazy(() => import("../components/DataTable"));
@@ -31,29 +31,27 @@ const Products = () => {
   const {data: products = {data: []}, error, isLoading } = useFetchProductsQuery(undefined, {
   });
 
+  const [createProduct, { isLoading: isCreating }] =
+  useCreateProductMutation();
+
 
   const { currentUser } = useSelector((state) => state.user);
 
   const role = currentUser.rest.role;
 
-    // State for managing a guaranteed loading indicator
+   
     const [showLoader, setShowLoader] = useState(true);
 
     // Delay loader removal slightly to avoid flashing
     useEffect(() => {
       const loaderTimer = setTimeout(() => {
         if (!isLoading) setShowLoader(false);
-      }, 100); // 500ms delay, adjust as needed
+      }, 100); 
   
       return () => clearTimeout(loaderTimer);
     }, [isLoading]);
   
 
-  // const dispatch = useDispatch();
-
-  // useEffect(() => {
-  //   dispatch(fetchProducts());
-  // }, [dispatch]);
 
   const rows = products.data.map((product) => ({
     id: product.sku,
@@ -88,28 +86,29 @@ const Products = () => {
 
   const handleCreateProduct = async (formData) => {
     try {
-      const res = await axios.post(
-        "http://localhost:3000/api/products/add",
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-      const data = res.data;
-      if (!data.success) {
+      // const res = await axios.post(
+      //   "http://localhost:3000/api/products/add",
+      //   formData,
+      //   {
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     withCredentials: true,
+      //   }
+      // );
+      const response = await createProduct(formData).unwrap();
+      
+      if (!response.success) {
         showErrorToast(data.message || "Error occurred");
         return;
       }
       showSuccessToast("Product is created successfully!");
-      dispatch(fetchProducts());
+    
     } catch (error) {
-      if (error.response) {
-        showErrorToast(error.response.data.message || "Server error");
-      } else if (error.request) {
-        showErrorToast("Network error, please try again");
+      if (error.data) {
+        showErrorToast(
+          error.data.message || "An unexpected server error occurred"
+        );
       } else {
         showErrorToast("An unexpected error occurred");
       }

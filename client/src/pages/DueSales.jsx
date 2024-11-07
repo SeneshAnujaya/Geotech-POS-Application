@@ -21,8 +21,8 @@ const DueSales = () => {
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState({});
 
-  const {data: sales = {data: []}, error, isLoading } = useFetchSalesQuery(undefined, {
-    refetchOnMountOrArgChange: true
+  const {data: sales = {data: []}, error, isLoading, refetch } = useFetchSalesQuery(undefined, {
+    // refetchOnMountOrArgChange: true
   });
 
   const [showLoader, setShowLoader] = useState(true);
@@ -202,6 +202,8 @@ const DueSales = () => {
       }
 
       showSuccessToast("Payment added & sale record update successfully!");
+      refetch();
+
     } catch (error) {
       console.log(error);
       

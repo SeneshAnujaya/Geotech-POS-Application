@@ -12,7 +12,7 @@ import DataTable from "../components/DataTable";
 import { useDispatch, useSelector } from "react-redux";
 import WholesaleClientAddModal from "../components/WholesaleClientAddModal";
 import { fetchWholesaleClients } from "../redux/wholesaleclients/wholesaleclientSlice";
-import { useFetchWholesaleClientsQuery } from "../redux/apiSlice";
+import { useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const WholesaleClients = () => {
@@ -26,6 +26,9 @@ const WholesaleClients = () => {
   const {data: wholesaleClients = {data: []}, error, isLoading } = useFetchWholesaleClientsQuery(undefined, {
     refetchOnMountOrArgChange: true
   });
+
+  const [createWholesaleClient, { isLoading: isCreating }] =
+  useCreateWholesaleClientMutation();
 
   const [showLoader, setShowLoader] = useState(true);
 
@@ -103,37 +106,36 @@ const WholesaleClients = () => {
   const handleCreateWholesaleClient = async (formData) => {
     // setLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:3000/api/wholesaleClient/add",
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-      const data = res.data;
-      if (!data.success) {
+      // const res = await axios.post(
+      //   "http://localhost:3000/api/wholesaleClient/add",
+      //   formData,
+      //   {
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     withCredentials: true,
+      //   }
+
+      // );
+      const response = await createWholesaleClient(formData).unwrap();
+      if (!response.success) {
         showErrorToast(data.message || "Error occurred");
-        // setLoading(false);
         return;
       }
-      // setLoading(false);
-      // getusers();
+
       showSuccessToast("Client created successfully!");
-      // dispatch(fetchWholesaleClients());
+    
     } catch (error) {
       console.log(error);
 
-      if (error.response) {
-        showErrorToast(error.response.data.message || "Server error");
-      } else if (error.request) {
-        showErrorToast("Network error, please try again");
+      if (error.data) {
+        showErrorToast(
+          error.data.message || "An unexpected server error occurred"
+        );
       } else {
         showErrorToast("An unexpected error occurred");
       }
-      // setLoading(false);
+    
     }
   };
 

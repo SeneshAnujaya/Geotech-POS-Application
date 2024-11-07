@@ -11,16 +11,19 @@ import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import UserAddModal from "../components/UserAddModal";
 import DataTable from "../components/DataTable";
 import { useSelector } from "react-redux";
-import { useFetchUsersQuery } from "../redux/apiSlice";
+import { useFetchUsersQuery, useCreateUserMutation } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const Users = () => {
   // const [users, setusers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const {data: users = {data: []}, error, isLoading } = useFetchUsersQuery(undefined, {
+  const {data: users = {data: []}, error, isLoading, refetch } = useFetchUsersQuery(undefined, {
   });
+
+  const [createUser, { isLoading: isCreating }] =
+  useCreateUserMutation();
 
   const { currentUser } = useSelector((state) => state.user);
    const role = currentUser.rest.role;
@@ -103,38 +106,38 @@ const Users = () => {
   };
 
   const handleCreateUser = async (formData) => {
-    setLoading(true);
+    // setLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:3000/api/auth/signup",
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-      const data = res.data;
-      if (!data.success) {
+      // const res = await axios.post(
+      //   "http://localhost:3000/api/auth/signup",
+      //   formData,
+      //   {
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     withCredentials: true,
+      //   }
+      // );
+      const response = await createUser(formData).unwrap();
+
+      if (!response.success) {
         showErrorToast(data.message || "Error occurred");
-        setLoading(false);
         return;
       }
-      setLoading(false);
-      getusers();
+    
+      
       showSuccessToast("Account created successfully!");
+      refetch();
     } catch (error) {
       console.log(error);
 
-      if (error.response) {
-        showErrorToast(error.response.data.message || "Server error");
-      } else if (error.request) {
-        showErrorToast("Network error, please try again");
+      if (error.data) {
+        showErrorToast(
+          error.data.message || "An unexpected server error occurred"
+        );
       } else {
         showErrorToast("An unexpected error occurred");
       }
-      setLoading(false);
     }
   };
 
