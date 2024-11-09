@@ -12,7 +12,7 @@ import DataTable from "../components/DataTable";
 import { useDispatch, useSelector } from "react-redux";
 import WholesaleClientAddModal from "../components/WholesaleClientAddModal";
 import { fetchWholesaleClients } from "../redux/wholesaleclients/wholesaleclientSlice";
-import { useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation } from "../redux/apiSlice";
+import { useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const WholesaleClients = () => {
@@ -24,11 +24,16 @@ const WholesaleClients = () => {
  
 
   const {data: wholesaleClients = {data: []}, error, isLoading } = useFetchWholesaleClientsQuery(undefined, {
-    refetchOnMountOrArgChange: true
+    // refetchOnMountOrArgChange: true
   });
 
   const [createWholesaleClient, { isLoading: isCreating }] =
   useCreateWholesaleClientMutation();
+
+
+  
+  const [deleteWholesaleClient, {isLoading: isDeleting}] = useDeleteWholesaleClientMutation();
+  const [updateWholesaleClient, {isLoading: isUpdating}] = useUpdateWholesaleClientMutation();
 
   const [showLoader, setShowLoader] = useState(true);
 
@@ -98,10 +103,10 @@ const WholesaleClients = () => {
     },
   ];
 
-  const tableApiEndpoints = {
-    delete: "http://localhost:3000/api/wholesaleClient/delete",
-    update: "http://localhost:3000/api/wholesaleClient/update",
-  };
+  // const tableApiEndpoints = {
+  //   delete: "http://localhost:3000/api/wholesaleClient/delete",
+  //   update: "http://localhost:3000/api/wholesaleClient/update",
+  // };
 
   const handleCreateWholesaleClient = async (formData) => {
     // setLoading(true);
@@ -187,8 +192,10 @@ const WholesaleClients = () => {
               <DataTable
                 rows={rows}
                 columns={columns}
-                apiEndpoints={tableApiEndpoints}
+                // apiEndpoints={tableApiEndpoints}
                 role={role}
+                deleteRow={deleteWholesaleClient}
+                updateRow={updateWholesaleClient}
               />
               </Suspense>
             </div>

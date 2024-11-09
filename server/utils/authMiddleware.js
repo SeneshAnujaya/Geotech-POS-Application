@@ -30,3 +30,4 @@ export const isAdmin = (req, res, next) => {
     return next(errorHandler(403, "Invalid token"));
   }
 };
+

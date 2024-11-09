@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import { showErrorToast } from "./ToastNotification";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWholesaleClients } from "../redux/wholesaleclients/wholesaleclientSlice";
+import { useFetchWholesaleClientsQuery } from "../redux/apiSlice";
 
 const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => {
   
 
-  const { wholesaleClients, loading, error } = useSelector((state) => state.wholesaleClients);
+  // const { wholesaleClients, loading, error } = useSelector((state) => state.wholesaleClients);
+
+  const {data: wholesaleClients = {data: []}, error, isLoading } = useFetchWholesaleClientsQuery(undefined, {
+    // refetchOnMountOrArgChange: true
+  });
   
   const dispatch = useDispatch();
 
@@ -76,9 +81,6 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
 
 
     const dataToSubmit = { ...formData, grandTotal, selectedClientId: isBulkBuyer ? formData.selectedClientId : null,  };
-
-    console.log(dataToSubmit);
-    
     
     onCreate(dataToSubmit);
     onClose();
@@ -158,7 +160,7 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
            </label>
            <select className="w-full p-2 rounded-md text-slate-800" onChange={handleClientSelectChange} >
             <option value="">Select a client...</option>
-            {wholesaleClients.map((client) => {
+            {wholesaleClients.data.map((client) => {
               return  <option key={client.bulkBuyerId} value={client.bulkBuyerId}>{client.companyName}</option>
             })}
             

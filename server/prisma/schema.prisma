@@ -13,6 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
   id        Int     @id @default(autoincrement())
   email     String  @unique
@@ -119,4 +120,9 @@ model Payment {
   bulkBuyer     BulkBuyer? @relation(fields: [bulkBuyerId], references: [bulkBuyerId])
 
   @@index([saleId, paymentDate]) // Index for quick lookups of payments by sale and date
+}
+
+model SystemSettings {
+  id             Int      @id @default(autoincrement())
+  isSetupComplete Boolean @default(false)
 }

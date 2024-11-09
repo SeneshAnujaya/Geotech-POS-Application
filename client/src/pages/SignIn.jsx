@@ -82,12 +82,12 @@ const { loading } = useSelector((state) => state.user);
           {loading ? "Loading..." : " Login "}
           </button>
         </form>
-        <div className="flex gap-2 mt-6">
+        {/* <div className="flex gap-2 mt-6">
               <p className="text-slate-300">Don't Have an account ? </p>
               <Link to={"/sign-up"}>
                 <span className="text-blue-400">Sign Up</span>
               </Link>
-            </div>
+            </div> */}
         </div>
       </div>
       </div>

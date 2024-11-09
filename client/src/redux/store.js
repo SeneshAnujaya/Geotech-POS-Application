@@ -6,12 +6,13 @@ import productsReducer from './products/productsSlice';
 import cartReducer from './cart/cartSlice';
 import salesReducer from './sales/saleSlice';
 import wholesaleClientReducer from './wholesaleclients/wholesaleclientSlice';
+import initialStatusReducer from './initialSetup/initialStatusSlice';
 import {persistReducer, persistStore} from 'redux-persist';
 import storage from "redux-persist/lib/storage";
 import apiSlice from './apiSlice';
 
 
-const rootReducer = combineReducers({user: userReducer, uisetting: uiSettingReducer, categories: categoryReducer, products: productsReducer, cart: cartReducer, sales: salesReducer, wholesaleClients: wholesaleClientReducer, [apiSlice.reducerPath]: apiSlice.reducer });
+const rootReducer = combineReducers({user: userReducer, uisetting: uiSettingReducer, categories: categoryReducer, products: productsReducer, cart: cartReducer, sales: salesReducer, wholesaleClients: wholesaleClientReducer, initialStatus: initialStatusReducer, [apiSlice.reducerPath]: apiSlice.reducer });
 
 const persistConfig = {
     key: 'root',

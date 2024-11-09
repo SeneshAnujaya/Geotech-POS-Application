@@ -6,12 +6,15 @@ import {
   showErrorToast,
   showSuccessToast,
 } from "../components/ToastNotification";
+import { useDispatch } from "react-redux";
+import { checkSetupStatus } from "../redux/initialSetup/initialStatusSlice";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({
@@ -25,7 +28,7 @@ const SignUp = () => {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/auth/signup",
+        "http://localhost:3000/api/initialsetup/signupAdmin",
         formData,
         {
           headers: {
@@ -41,9 +44,12 @@ const SignUp = () => {
       }
 
       setLoading(false);
+      dispatch(checkSetupStatus());
       navigate("/sign-in");
       showSuccessToast("Account created successfully!");
     } catch (error) {
+      console.log(error);
+      
       if (error.response) {
         // Handle server-side errors
         showErrorToast(error.response.data.message || "Server error");
@@ -70,7 +76,7 @@ const SignUp = () => {
           <div className="w-full max-w-md mx-auto  rounded-md border-slate-700 px-10 py-14 bg-[#002136] bg-[#00263d] border">
             <h1 className="text-white text-3xl mb-6">GEOTECH</h1>
             <p className="mb-12 text-slate-300">
-              Please Signup For create Account
+              Please Signup For create Admin Account
             </p>
             <form className="flex flex-col" onSubmit={handleSubmit}>
               <label htmlFor="username" className="text-slate-300 mb-2 text-sm">

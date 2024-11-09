@@ -11,7 +11,7 @@ import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import UserAddModal from "../components/UserAddModal";
 import DataTable from "../components/DataTable";
 import { useSelector } from "react-redux";
-import { useFetchUsersQuery, useCreateUserMutation } from "../redux/apiSlice";
+import { useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const Users = () => {
@@ -21,9 +21,13 @@ const Users = () => {
 
   const {data: users = {data: []}, error, isLoading, refetch } = useFetchUsersQuery(undefined, {
   });
+ 
 
   const [createUser, { isLoading: isCreating }] =
   useCreateUserMutation();
+  
+  const [deleteUser, {isLoading: isDeleting}] = useDeleteUserMutation();
+  const [updateuser, {isLoading: isUpdating}] = useUpdateUserMutation();
 
   const { currentUser } = useSelector((state) => state.user);
    const role = currentUser.rest.role;
@@ -100,10 +104,10 @@ const Users = () => {
     },
   ];
 
-  const tableApiEndpoints = {
-    delete: "http://localhost:3000/api/user/deleteuser",
-    update: "http://localhost:3000/api/user/updateuser",
-  };
+  // const tableApiEndpoints = {
+  //   delete: "http://localhost:3000/api/user/deleteuser",
+  //   update: "http://localhost:3000/api/user/updateuser",
+  // };
 
   const handleCreateUser = async (formData) => {
     // setLoading(true);
@@ -186,8 +190,10 @@ const Users = () => {
               <DataTable
                 rows={rows}
                 columns={columns}
-                apiEndpoints={tableApiEndpoints}
+                // apiEndpoints={tableApiEndpoints}
                 role={role}
+                deleteRow={deleteUser}
+                updateRow={updateuser}
               />
               </Suspense>
             </div>

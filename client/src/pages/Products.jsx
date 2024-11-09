@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 import ProductAddModal from "../components/ProductAddModal";
 // import DataTable from "../components/DataTable";
-import { useFetchProductsQuery, useCreateProductMutation } from "../redux/apiSlice";
+import { useFetchProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation } from "../redux/apiSlice";
 import { CircularProgress, Box, Skeleton } from "@mui/material";
 
 const DataTable = lazy(() => import("../components/DataTable"));
@@ -34,6 +34,8 @@ const Products = () => {
   const [createProduct, { isLoading: isCreating }] =
   useCreateProductMutation();
 
+  const [deleteproduct, {isLoading: isDeleting }] = useDeleteProductMutation();
+  const [updateProduct, {isLoading: isUpdating}] = useUpdateProductMutation();
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -115,10 +117,10 @@ const Products = () => {
     }
   };
 
-  const tableApiEndpoints = {
-    delete: "http://localhost:3000/api/products/delete",
-    update: "http://localhost:3000/api/products/updateproduct",
-  };
+  // const tableApiEndpoints = {
+  //   delete: "http://localhost:3000/api/products/delete",
+  //   update: "http://localhost:3000/api/products/updateproduct",
+  // };
 
   const renderTableSkeleton = () => (
     <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
@@ -172,8 +174,10 @@ const Products = () => {
             <DataTable
               rows={rows}
               columns={columns}
-              apiEndpoints={tableApiEndpoints}
+              // apiEndpoints={tableApiEndpoints}
               role={role}
+              deleteRow={deleteproduct}
+              updateRow={updateProduct}
             />
             </Suspense>
           </div>

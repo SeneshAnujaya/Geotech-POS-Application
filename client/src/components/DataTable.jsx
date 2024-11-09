@@ -5,7 +5,7 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { showErrorToast, showSuccessToast } from "./ToastNotification";
 
-const DataTable = ({ rows, columns, apiEndpoints, role }) => {
+const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) => {
   const [rowModesModel, setRowModesModel] = useState({});
   const [dataRows, setDataRows] = useState(rows);
 
@@ -25,22 +25,30 @@ const DataTable = ({ rows, columns, apiEndpoints, role }) => {
 
   const handleDeleteClick = (id) => async () => {
     try {
-      const res = await axios.delete(`${apiEndpoints.delete}/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
+      const res = await deleteRow(id).unwrap();
+      // const res = await axios.delete(`${apiEndpoints.delete}/${id}`, {
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   withCredentials: true,
+      // });
 
-      if (res.data.success == true) {
+      if (res.success == true) {
         showSuccessToast("Row deleted successfully!");
         setDataRows(dataRows.filter((row) => row.id !== id));
       } else {
         showErrorToast("Row deleted failed");
       }
     } catch (error) {
-      if (error.response) {
-        showErrorToast(error.response.data.message);
+      // if (error.response) {
+      //   showErrorToast(error.response.data.message);
+      // } else {
+      //   showErrorToast("An unexpected error occurred");
+      // }
+      if (error.data) {
+        showErrorToast(
+          error.data.message || "An unexpected server error occurred"
+        );
       } else {
         showErrorToast("An unexpected error occurred");
       }
@@ -88,18 +96,19 @@ const DataTable = ({ rows, columns, apiEndpoints, role }) => {
     const { id } = updatedRow;
 
     try {
-      const res = await axios.put(
-        `${apiEndpoints.update}/${id}`,
-        updatedData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+      // const res = await axios.put(
+      //   `${apiEndpoints.update}/${id}`,
+      //   updatedData,
+      //   {
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     withCredentials: true,
+      //   }
+      // );
+      const res = await updateRow({id, updatedData}).unwrap();
 
-      if (res.data.success) {
+      if (res.success) {
         showSuccessToast("Row updated successfully!");
       } else {
         showErrorToast("Failed to update row");
@@ -107,10 +116,17 @@ const DataTable = ({ rows, columns, apiEndpoints, role }) => {
     } catch (error) {
       console.log(error);
       
-      if (error.response) {
-        showErrorToast(error.response.data.message);
-      } else if (error.request) {
-        showErrorToast("No response from the server");
+      // if (error.response) {
+      //   showErrorToast(error.response.data.message);
+      // } else if (error.request) {
+      //   showErrorToast("No response from the server");
+      // } else {
+      //   showErrorToast("An unexpected error occurred");
+      // }
+      if (error.data) {
+        showErrorToast(
+          error.data.message || "An unexpected server error occurred"
+        );
       } else {
         showErrorToast("An unexpected error occurred");
       }

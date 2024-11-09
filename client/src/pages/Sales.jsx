@@ -26,7 +26,7 @@ const Sales = () => {
   }, [isLoading]);
 
 
-  const rows = sales.data.map((sale) => ({
+  const rows = [...sales.data].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map((sale) => ({
     id: sale.saleId,
     col1: sale.invoiceNumber,
     col2: sale.buyerName,

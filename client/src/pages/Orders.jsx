@@ -29,6 +29,7 @@ import axios from "axios";
 import MouseImage from "../assets/mouse.jpg";
 import generatePDF from "../components/generatePDF";
 import SaleconfirmModal from "../components/SaleconfirmModal";
+import { useFetchCategoriesQuery, useFetchProductsQuery, useFetchSalesQuery, useFetchWholesaleClientsQuery } from "../redux/apiSlice";
 
 const Orders = () => {
   // const [loading, setLoading] = useState(false);
@@ -38,15 +39,35 @@ const Orders = () => {
   const [isBulkBuyer, setIsBulkBuyer] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const {
-    categories,
-    loading: categoryLoading,
-    error,
-  } = useSelector((state) => state.categories);
+  // const {
+  //   categories,
+  //   loading: categoryLoading,
+  //   error,
+  // } = useSelector((state) => state.categories);
 
-  const { products, loading: productLoading } = useSelector(
-    (state) => state.products
-  );
+   const {
+    data: categories = { data: [] },
+    error,
+    isLoading: isCategoryLoading,
+  } = useFetchCategoriesQuery(undefined, {
+    // refetchOnMountOrArgChange: true,
+  });
+
+  
+
+  // const { products, loading: productLoading } = useSelector(
+  //   (state) => state.products
+  // );
+
+  const {data: products = {data: []}, error: isProductError, isLoading: isProductLoading, refetch } = useFetchProductsQuery(undefined, {
+  });
+
+  const {refetch: refetchSales } = useFetchSalesQuery(undefined, {
+  });
+
+  const {refetch: refetchWholesaleClients } = useFetchWholesaleClientsQuery(undefined, {
+    // refetchOnMountOrArgChange: true
+  });
 
   const { cartItems } = useSelector((state) => state.cart);
 
@@ -57,14 +78,14 @@ const Orders = () => {
 
   const dispatch = useDispatch();  
 
-  useEffect(() => {
-    dispatch(fetchCategories());
-    dispatch(fetchProducts());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchCategories());
+  //   dispatch(fetchProducts());
+  // }, [dispatch]);
 
   // Filter product by selected category and search term
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+    return products.data.filter(product => {
       const matchesCategory = !selectedCategory || product.categoryId === selectedCategory.categoryId;
 
       const matchesSearchTerm = 
@@ -230,10 +251,7 @@ const Orders = () => {
   const handlePrintInvoice = async (formData) => {
 
     const {clientName, phonenumber, discount, paidAmount, selectedClientId, grandTotal} = formData;
-    console.log(formData);
     
-
-
     //  Sales record array
     const itemsToRecord = cartItems.map(item => ({
       sku: item.sku,
@@ -270,7 +288,10 @@ const Orders = () => {
       price: isBulkBuyer ? item.wholesalePrice : item.retailPrice 
     })), total, currentUserName, clientName, phonenumber, dispatch, discount, grandTotal, paidAmount, invoiceNumber );
 
-      dispatch(fetchProducts());   
+      // dispatch(fetchProducts());  
+      refetch(); 
+      refetchSales();
+      refetchWholesaleClients();
      } else {
       showErrorToast("Failed to update stock!")
      }
@@ -321,10 +342,10 @@ const Orders = () => {
               >
                 All
               </div>
-              {categoryLoading ? (
+              {isCategoryLoading ? (
                 <div>Loading...</div>
               ) : (
-                categories.map((category) => (
+                categories.data.map((category) => (
                   <div
                     key={category.categoryId}
                     className={`leading-none   py-2 px-3 rounded-full text-base hover:cursor-pointer ${
@@ -343,7 +364,7 @@ const Orders = () => {
 
             {/* Thinks about use flex and wrap can give card a minum width */}
             <div className="flex flex-wrap  gap-4 mt-6">
-              {productLoading ? (
+              {isProductLoading ? (
                 <div className="mt-3 mb-2">Loading products...</div>
               ) : ( filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (

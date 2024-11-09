@@ -11,6 +11,7 @@ import salesRouter from './routes/salesRoute.js';
 import userRouter from './routes/userRoute.js';
 import wholesaleClientRouter from './routes/wholesaleClientRoute.js';
 import paymentRouter from './routes/paymentRoute.js';
+import initialSetupRouter from './routes/initialsetupRoute.js';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/sales", salesRouter);
 app.use("/api/user", userRouter);
 app.use("/api/wholesaleClient", wholesaleClientRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/initialsetup", initialSetupRouter);
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000!');

@@ -22,6 +22,24 @@ const apiSlice = createApi({
             }),
             invalidatesTags: ['Products']
         }),
+        deleteProduct: builder.mutation({
+            query: (id) => ({
+                url: `/products/delete/${id}`,
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            }),
+            invalidatesTags: ['Products']
+
+        }),
+        updateProduct: builder.mutation({
+            query: ({id, updatedData}) => ({
+                url: `/products/updateproduct/${id}`,
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: updatedData
+            }),
+            invalidatesTags: ['Products']
+        }),
 
         // Category Endpoints
         fetchCategories: builder.query({
@@ -75,6 +93,25 @@ const apiSlice = createApi({
             }),
             invalidatesTags: ['WholesaleClients']
         }),
+        deleteWholesaleClient: builder.mutation({
+            query: (id) => ({
+                url: `/wholesaleClient/delete/${id}`,
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            }),
+            invalidatesTags: ['WholesaleClients']
+
+        }),
+        updateWholesaleClient: builder.mutation({
+            query: ({id, updatedData}) => ({
+                url: `/wholesaleClient/update/${id}`,
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: updatedData
+            }),
+            invalidatesTags: ['WholesaleClients']
+        }),
+
 
         // Users Endpoints
         fetchUsers: builder.query({
@@ -91,9 +128,34 @@ const apiSlice = createApi({
             }),
             invalidatesTags: ['Users']
         }),
+        deleteUser: builder.mutation({
+            query: (id) => ({
+                url: `/user/deleteuser/${id}`,
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            }),
+            invalidatesTags: ['Users']
+
+        }),
+        updateUser: builder.mutation({
+            query: ({id, updatedData}) => ({
+                url: `/user/updateuser/${id}`,
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: updatedData
+            }),
+            invalidatesTags: ['Users']
+        }),
+
+        // // Initial Setup Endpoints
+        // checkSetupStatus: builder.query({
+        //     query: () => ({
+        //         url: '/initialsetup/check-setup',
+        //     })
+        //   }),
         
     })
 });
 
-export const {useFetchProductsQuery, useCreateProductMutation, useFetchCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation} = apiSlice;
+export const {useFetchProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation, useFetchCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation, useCheckSetupStatusQuery} = apiSlice;
 export default apiSlice;

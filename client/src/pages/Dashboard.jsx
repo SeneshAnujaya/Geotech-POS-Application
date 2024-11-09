@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { fetchSales } from "../redux/sales/saleSlice";
 import { DataGrid } from "@mui/x-data-grid";
 import axios from "axios";
+import { useFetchSalesQuery } from "../redux/apiSlice";
 
 const getLast14DaysSales = (sales) => {
   const today = new Date();
@@ -53,7 +54,10 @@ const aggregateSalesByDate = (sales) => {
 };
 
 const Dashboard = () => {
-  const { sales, loading, error } = useSelector((state) => state.sales);
+  // const { sales, loading, error } = useSelector((state) => state.sales);
+  const {data: salesResponse = {data: []}, error, isLoading } = useFetchSalesQuery(undefined, {
+  });
+  const sales = salesResponse.data;
   const dispatch = useDispatch();
   const [salesData, setSalesData] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -61,9 +65,9 @@ const Dashboard = () => {
   const [dailyRevenue, setDailyRevenue] = useState(0);
   const [monthlySaleCount, setMonthlySaleCount] = useState(0);
 
-  useEffect(() => {
-    dispatch(fetchSales());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchSales());
+  // }, [dispatch]);
 
   useEffect(() => {
     const last14DaysSales = getLast14DaysSales(sales);
@@ -76,7 +80,7 @@ const Dashboard = () => {
   }, [sales]);
 
   // Sales data for datagrid
-  const rows =  [...sales].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15).map((sale) => ({
+  const rows =  [...sales].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 15).map((sale) => ({
     id: sale.saleId,
     col1: sale.invoiceNumber,
     col2: sale.buyerName,
@@ -116,7 +120,7 @@ const Dashboard = () => {
 
   const sortModel = [
     {
-      field: 'col5', // Replace with your date field name
+      field: 'col7', // Replace with your date field name
       sort: 'desc',       // Sort in descending order
     },
   ];
