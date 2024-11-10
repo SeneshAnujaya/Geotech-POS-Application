@@ -10,7 +10,6 @@ import {
 } from "../components/ToastNotification";
 import axios from "axios";
 import ProductAddModal from "../components/ProductAddModal";
-// import DataTable from "../components/DataTable";
 import { useFetchProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation } from "../redux/apiSlice";
 import { CircularProgress, Box, Skeleton } from "@mui/material";
 

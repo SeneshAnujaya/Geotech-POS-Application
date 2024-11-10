@@ -1,11 +1,13 @@
 import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
+import "pdfmake/build/vfs_fonts";
+// import  pdfFonts from "pdfmake/build/vfs_fonts";
+// import { pdfMake as pdfFonts } from "pdfmake/build/vfs_fonts";
 import { showWarningToast, showErrorToast } from "./ToastNotification";
 import { clearCart } from "../redux/cart/cartSlice";
 
 
 
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+// pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const generatePDF = (cartItems,  total, currentUserName, billingName, phoneNumber, dispatch = null, discount, grandTotal, paidAmount, invoiceNumber) => {
 

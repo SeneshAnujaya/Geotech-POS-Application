@@ -118,7 +118,6 @@ const Category = () => {
       field: "col4",
       headerName: "CreatedAt",
       width: 200,
-      editable: true,
       editable: false,
     },
   ];
