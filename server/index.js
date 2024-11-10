@@ -44,7 +44,7 @@ app.use("/api/wholesaleClient", wholesaleClientRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/initialsetup", initialSetupRouter);
 
-app.get('/api', (req, res) => {
+app.get('/', (req, res) => {
     res.send('API is working');
 });
 
