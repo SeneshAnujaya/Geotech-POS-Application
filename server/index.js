@@ -44,6 +44,10 @@ app.use("/api/wholesaleClient", wholesaleClientRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/initialsetup", initialSetupRouter);
 
+app.get('/api', (req, res) => {
+    res.send('API is working');
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
