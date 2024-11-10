@@ -14,6 +14,8 @@ import {
 import { useFetchSalesQuery } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const DueSales = () => {
   
 
@@ -183,7 +185,7 @@ const DueSales = () => {
   }) => {
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/payment/create",
+        `${apiUrl}/payment/create`,
         {
           saleId,
           bulkBuyerId,

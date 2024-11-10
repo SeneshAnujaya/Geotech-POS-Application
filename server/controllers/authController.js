@@ -3,6 +3,8 @@ import bcryptjs from "bcryptjs";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import {errorHandler} from "../utils/error.js";
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const prisma = new PrismaClient();
 

@@ -8,10 +8,15 @@ import {
 } from "../components/ToastNotification";
 import { useDispatch } from "react-redux";
 import { checkSetupStatus } from "../redux/initialSetup/initialStatusSlice";
+import { useFetchUsersQuery } from "../redux/apiSlice";
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const SignUp = () => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
+  const { refetch } = useFetchUsersQuery(undefined, {
+  });
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -28,7 +33,7 @@ const SignUp = () => {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/initialsetup/signupAdmin",
+        `${apiUrl}/initialsetup/signupAdmin`,
         formData,
         {
           headers: {
@@ -45,6 +50,7 @@ const SignUp = () => {
 
       setLoading(false);
       dispatch(checkSetupStatus());
+      refetch();
       navigate("/sign-in");
       showSuccessToast("Account created successfully!");
     } catch (error) {

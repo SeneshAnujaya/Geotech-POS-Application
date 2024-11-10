@@ -31,6 +31,8 @@ import generatePDF from "../components/generatePDF";
 import SaleconfirmModal from "../components/SaleconfirmModal";
 import { useFetchCategoriesQuery, useFetchProductsQuery, useFetchSalesQuery, useFetchWholesaleClientsQuery } from "../redux/apiSlice";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Orders = () => {
   // const [loading, setLoading] = useState(false);
 
@@ -270,7 +272,7 @@ const Orders = () => {
   
     try {
 
-       const res = await axios.post('http://localhost:3000/api/sales/createSaleRecordWithStockUpdate', {
+       const res = await axios.post(`${apiUrl}/sales/createSaleRecordWithStockUpdate`, {
         userId : currentUserId,
         items: itemsToRecord,
         isBulkBuyer: isBulkBuyer,
@@ -306,19 +308,19 @@ const Orders = () => {
 
   return (
     <MainLayout>
-      <div className="px-0 md:px-8 py-4 flex gap-4 rounded-md">
+      <div className="px-0 md:px-8 py-4 flex flex-col xl:flex-row gap-4 rounded-md">
         {/* Menu items side */}
-        <div className="w-3/4 border border-slate-700 rounded-md bg-slate-900 p-4 min-h-[800px]">
-          <div className="flex justify-between py-2">
+        <div className="w-full xl:h-3/4 border border-slate-700 rounded-md bg-slate-900 p-4 min-h-[800px]">
+          <div className="flex justify-between py-2 gap-4 flex-wrap">
             <div className=" items-center mb-6">
-              <h1 className="text-3xl font-semibold">Orders</h1>
+              <h1 className="text-xl md:text-3xl font-semibold">Orders</h1>
             </div>
             {/* Search bar side */}
             <div className="relative">
               <input
                 type="search"
                 placeholder="Search via SKU Name Brand."
-                className="pl-10 pr-4 py-2 w-50 md:w-80 border border-slate-600 bg-slate-800 rounded-lg focus:outline-none focus:border-blue-500 "
+                className="w-full pl-10 pr-4 py-2 w-50 md:w-80 border border-slate-600 bg-slate-800 rounded-lg focus:outline-none focus:border-blue-500 "
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <div className="absolute inset-y-0 left-0 pl-3 pt-3 flex  pointer-events-none">
@@ -426,7 +428,7 @@ const Orders = () => {
           </div>
         </div>
         {/* cart side */}
-        <div className="w-1/4  border border-slate-700 rounded-md bg-slate-900 p-4 flex flex-col justify-between">
+        <div className="w-full xl:w-1/4  border border-slate-700 rounded-md bg-slate-900 p-4 flex flex-col justify-between">
           <div>
             <h4 className="font-medium text-lg ">Order Detail</h4>
             {/*Cart items container*/}

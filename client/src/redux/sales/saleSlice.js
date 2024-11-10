@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const saleSlice = createSlice({
   name: 'sales',
   initialState: {
@@ -30,7 +32,7 @@ export default saleSlice.reducer;
 export const fetchSales = () => async (dispatch) => {
     dispatch(setLoading());
     try {
-      const response = await axios.get('http://localhost:3000/api/sales/getSales');
+      const response = await axios.get(`${apiUrl}/sales/getSales`);
       dispatch(setSales(response.data.data));
     } catch (error) {
       dispatch(setError(error.message));

@@ -30,6 +30,8 @@ import {
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 import { useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation } from "../redux/apiSlice";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 
 const Category = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -2,9 +2,7 @@ import {
   Album,
   Archive,
   BadgeAlertIcon,
-  Boxes,
   BoxIcon,
-  ClipboardCheckIcon,
   ClipboardList,
   Icon,
   LogOut,
@@ -23,6 +21,8 @@ import axios from "axios";
 import {signOut} from '../redux/user/userSlice';
 import LogoutConfirm from "./LogoutConfirm";
 import { useState } from "react";
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const SidebarLink = ({ href, icon: Icon, label, isCollapsed }) => {
   const { pathname } = useLocation();
@@ -67,7 +67,7 @@ const Sidebar = () => {
 
     
     try {
-      await axios.post("http://localhost:3000/api/auth/signout");
+      await axios.post(`${apiUrl}/auth/signout`);
       dispatch(signOut());
       document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       showSuccessToast("Logged out successfully!");

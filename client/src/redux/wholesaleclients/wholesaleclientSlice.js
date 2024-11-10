@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const wholesaleClientSlice = createSlice({
   name: 'wholesaleClients',
   initialState: {
@@ -30,7 +32,7 @@ export default wholesaleClientSlice.reducer;
 export const fetchWholesaleClients = () => async (dispatch) => {
     dispatch(setLoading());
     try {
-      const response = await axios.get('http://localhost:3000/api/wholesaleClient/getBulkBuyers');
+      const response = await axios.get(`${apiUrl}/wholesaleClient/getBulkBuyers`);
       dispatch(setWholesaleClients(response.data.data));
     } catch (error) {
       dispatch(setError(error.message));

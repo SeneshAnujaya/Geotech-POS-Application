@@ -15,12 +15,13 @@ import { useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUp
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const Users = () => {
-  // const [users, setusers] = useState([]);
-  // const [loading, setLoading] = useState(true);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {data: users = {data: []}, error, isLoading, refetch } = useFetchUsersQuery(undefined, {
+    
   });
+
  
 
   const [createUser, { isLoading: isCreating }] =

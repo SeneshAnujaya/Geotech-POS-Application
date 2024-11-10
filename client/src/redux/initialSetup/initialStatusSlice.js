@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const initialStatusSlice = createSlice({
   name: 'initialStatus',
   initialState: {
@@ -30,7 +32,7 @@ export default initialStatusSlice.reducer;
 export const checkSetupStatus = () => async (dispatch) => {
     dispatch(setLoading());
     try {
-      const response = await axios.get('http://localhost:3000/api/initialsetup/check-setup');
+      const response = await axios.get(`${apiUrl}/initialsetup/check-setup`);
       dispatch(setInitialState(response.data));
     } catch (error) {
       dispatch(setError(error.message));

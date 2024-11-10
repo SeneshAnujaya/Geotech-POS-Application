@@ -2,7 +2,6 @@ import {
   ChartLine,
   ChartNoAxesCombined,
   CircleDollarSign,
-  CirclePercent,
 } from "lucide-react";
 import MainLayout from "../components/MainLayout";
 import IconCard from "../components/IconCard";
@@ -21,6 +20,8 @@ import { fetchSales } from "../redux/sales/saleSlice";
 import { DataGrid } from "@mui/x-data-grid";
 import axios from "axios";
 import { useFetchSalesQuery } from "../redux/apiSlice";
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const getLast14DaysSales = (sales) => {
   const today = new Date();
@@ -127,7 +128,7 @@ const Dashboard = () => {
 
   const fetchTotalRevenue = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/sales/getTotalRevenue`);
+      const response = await axios.get(`${apiUrl}/sales/getTotalRevenue`);
       if(response.data.success) {
         setTotalRevenue(response.data.totalRevenue);
       } else {
@@ -140,7 +141,7 @@ const Dashboard = () => {
 
   const fetchTotalSales = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/sales/getTotalSales`);
+      const response = await axios.get(`${apiUrl}/sales/getTotalSales`);
       if(response.data.success) {
         setTotalSalesCount(response.data.totalSalesCount);
       } else {
@@ -153,7 +154,7 @@ const Dashboard = () => {
 
   const fetchDailyRevenue = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/sales/getDailyRevenue`);
+      const response = await axios.get(`${apiUrl}/sales/getDailyRevenue`);
       if(response.data.success) {
         
         setDailyRevenue(response.data.dailyRevenue);
@@ -167,7 +168,7 @@ const Dashboard = () => {
 
   const fetchMonthlySaleCount = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/sales/getMonthlySaleCount`);
+      const response = await axios.get(`${apiUrl}/sales/getMonthlySaleCount`);
       if(response.data.success) {
         setMonthlySaleCount(response.data.monthlySalesCount);
       } else {
@@ -194,10 +195,10 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="w-full min-h-[800px] border-slate-700 rounded-md border py-6 px-6 ">
-        <h1 className="text-2xl font-medium">Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-medium">Dashboard</h1>
         <span className="mt-4 h-[1px] bg-slate-700 w-full block"></span>
         {/* Dashboard content goes here */}
-        <div className="mt-4 flex flex-wrap gap-4">
+        <div className="mt-4 flex flex-wrap lg:flex-nowrap gap-4">
           <IconCard
             icon={<CircleDollarSign className="w-9 h-9 text-blue-400" />}
             amount={Number(totalRevenue).toFixed(2)}
@@ -221,8 +222,8 @@ const Dashboard = () => {
           />
         </div>
         {/* bottom row */}
-        <div className="flex items-center gap-4 mt-8 flex-wrap">
-          <div className="  w-[55%]  border-slate-700 rounded-md border py-6 px-6">
+        <div className="flex items-stretch h-auto gap-4 mt-8 flex-col xl:flex-row">
+          <div className="w-full  sm:w-[100%] xl:w-[55%]  border-slate-700 rounded-md border py-6 px-6">
             <h3 className="text-lg font-medium text-slate-200">Recent Sales</h3>
             <div style={{ width: "100%", height: "450px" }} className="mt-8">
               <DataGrid
@@ -275,9 +276,9 @@ const Dashboard = () => {
               />
             </div>
           </div>
-          <div className="flex-1  border-slate-700 rounded-md border py-4 px-6">
+          <div className="w-full sm:flex-1 h-full  border-slate-700 rounded-md border py-4 px-6">
             <h3 className="text-lg font-medium text-slate-200">Performance</h3>
-            <ResponsiveContainer width="100%" height={465} className="mt-8">
+            <ResponsiveContainer width="100%" height={465} className="mt-8 !h-[265px] sm:!h-full">
               <BarChart
                 data={salesData}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}

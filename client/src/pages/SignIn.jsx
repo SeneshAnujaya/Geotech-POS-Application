@@ -5,6 +5,8 @@ import { showErrorToast, showSuccessToast } from "../components/ToastNotificatio
 import { useDispatch, useSelector } from 'react-redux';
 import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const SignIn = () => {
 
   const [formData, setFormData] = useState({});
@@ -25,7 +27,7 @@ const { loading } = useSelector((state) => state.user);
     dispatch(signInStart());
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/auth/signin",
+        `${apiUrl}/auth/signin`,
         formData,
         {
           headers: {

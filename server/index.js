@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+
 
 
 // IMPORT ROUTES
@@ -13,7 +15,11 @@ import wholesaleClientRouter from './routes/wholesaleClientRoute.js';
 import paymentRouter from './routes/paymentRoute.js';
 import initialSetupRouter from './routes/initialsetupRoute.js';
 
+dotenv.config();
+
 const app = express();
+
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -22,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 const corsOptions = {
-    origin: 'http://localhost:5173', // Frontend URL
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Frontend URL
     credentials: true, // Enable set cookie
   };
 
@@ -38,8 +44,9 @@ app.use("/api/wholesaleClient", wholesaleClientRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/initialsetup", initialSetupRouter);
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000!');
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
     
 });
 
