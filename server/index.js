@@ -27,17 +27,26 @@ app.use('/uploads', express.static('uploads'));
 app.use(express.urlencoded({ extended: true }));
 
 
+
+
 const corsOptions = {
    
     
     origin: [
         'https://geotech-pos-client.vercel.app', // Production Frontend URL
-        'http://localhost:3000' // Local Development URL
-    ],// Frontend URL
-    credentials: true, // Enable set cookie
+        'http://localhost:3000' 
+    ],
+    allowedHeaders: [
+        "Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", 
+        "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "X-CSRF-Token"
+    ], 
+    credentials: true, 
   };
 
   app.use(cors(corsOptions));
+  // This will handle the OPTIONS preflight request
+app.options('*', cors(corsOptions));  // Allow CORS for all routes
+
 
 // ROUTES
 app.use("/api/auth", authRouter);
@@ -52,6 +61,8 @@ app.use("/api/initialsetup", initialSetupRouter);
 app.get('/', (req, res) => {
     res.send('API is working');
 });
+
+
 
 
 
