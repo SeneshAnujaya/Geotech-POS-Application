@@ -30,7 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 const corsOptions = {
    
     
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Frontend URL
+    origin: 'https:geotech-pos-client.vercel.app', // Frontend URL
     credentials: true, // Enable set cookie
   };
 
