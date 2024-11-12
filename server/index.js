@@ -4,7 +4,6 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 
 
-
 // IMPORT ROUTES
 import authRouter from './routes/authRoute.js';
 import productsRouter from './routes/productsRoute.js';
@@ -19,22 +18,18 @@ dotenv.config();
 
 const app = express();
 
-
-
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 app.use(express.urlencoded({ extended: true }));
 
-
-
-
 const corsOptions = {
    
     
     origin: [
+        process.env.FRONTEND_URL,
         'https://geotech-pos-client.vercel.app', // Production Frontend URL
-        'http://localhost:3000' 
+        'http://localhost:3001' 
     ],
     allowedHeaders: [
         "Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", 
@@ -63,14 +58,11 @@ app.get('/', (req, res) => {
 });
 
 
-
-
-
-// const port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//     console.log(`Server is running on port ${port}`);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
     
-// });
+});
 
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
