@@ -22,7 +22,6 @@ export const addCategory = async (req, res, next) => {
     }
 
     try {
-
       const existingCategory = await prisma.category.findUnique({
         where: { name },
       });
@@ -33,7 +32,7 @@ export const addCategory = async (req, res, next) => {
           message: "Category with this name already exists",
         });
       }
-      
+
       const categoryPic = req.file ? req.file.filename : null;
 
       const newCategory = await prisma.category.create({
@@ -46,7 +45,7 @@ export const addCategory = async (req, res, next) => {
       res.status(201).json({ success: true, data: newCategory });
     } catch (error) {
       console.error("Error adding category:", error);
-      next(error); 
+      next(error);
     }
   });
 };
@@ -65,26 +64,24 @@ export const getAllCategories = async (req, res) => {
 
 // Delete Category
 export const deleteCategory = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params;  
 
   try {
     const relatedProducts = await prisma.product.findMany({
       where: {
-        categoryId: Number(id),
+        categoryId: id,
       },
     });
 
     if (relatedProducts.length > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Cannot delete category have products.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete category have products.",
+      });
     }
 
     const category = await prisma.category.findUnique({
-      where: { categoryId: Number(id) },
+      where: { categoryId: id },
     });
 
     if (!category) {
@@ -94,7 +91,7 @@ export const deleteCategory = async (req, res) => {
     }
 
     await prisma.category.delete({
-      where: { categoryId: Number(id) },
+      where: { categoryId: id },
     });
 
     res
@@ -115,20 +112,20 @@ export const updateCategory = async (req, res) => {
 
   try {
     const updatedCategory = await prisma.category.update({
-      where: { categoryId: parseInt(id) },
+      where: { categoryId: id },
       data: { name },
     });
 
     if (updateCategory) {
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Category updated successfully",
-          data: updateCategory,
-        });
+      res.status(200).json({
+        success: true,
+        message: "Category updated successfully",
+        data: updateCategory,
+      });
     }
   } catch (error) {
+    console.log(error);
+    
     res
       .status(500)
       .json({ success: false, message: "Error updating category" });

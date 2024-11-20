@@ -5,19 +5,29 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchSales } from "../redux/sales/saleSlice";
 import InvoiceModal from "../components/InvoiceModal";
 import generatePDF from "../components/generatePDF";
-import { useFetchSalesQuery } from "../redux/apiSlice";
+import { useFetchPaginatedSalesQuery, useFetchSalesQuery } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const Sales = () => {
  
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 50,
+  });
+
   const {data: sales = {data: []}, error, isLoading } = useFetchSalesQuery(undefined, {
   });
+
+  const { data: paginatedSales = { data: [] }, refetch, isLoading: isPaginatedSaleLoading } =
+    useFetchPaginatedSalesQuery({page: paginationModel.page,
+      limit: paginationModel.pageSize,}); 
 
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
+ 
     const loaderTimer = setTimeout(() => {
       if (!isLoading) setShowLoader(false);
     }, 100); 
@@ -26,7 +36,7 @@ const Sales = () => {
   }, [isLoading]);
 
 
-  const rows = [...sales.data].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map((sale) => ({
+  const rows = [...paginatedSales.data].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map((sale) => ({
     id: sale.saleId,
     col1: sale.invoiceNumber,
     col2: sale.buyerName,
@@ -81,7 +91,7 @@ const Sales = () => {
   ];
 
   const handleInvoice = (saleId) => {
-    const selectSaleRecord = sales.data.find((sale) => sale.saleId === saleId);
+    const selectSaleRecord = paginatedSales.data.find((sale) => sale.saleId === saleId);
 
     const invoiceItems = selectSaleRecord.SalesItem.map((item) => ({
       sku: item.product.sku,
@@ -150,10 +160,6 @@ const Sales = () => {
               columns={columns}
               className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
               sx={{
-                // Style for cells
-                // "& .MuiDataGrid-cell": {
-                //   color: "#fff", // Text color for cells
-                // },
                 // Style for column headers
                 "& .MuiDataGrid-columnHeaders": {
                   backgroundColor: "transparent", // Background color for header
@@ -191,6 +197,12 @@ const Sales = () => {
                   color: "#fff", // Color for pagination item text
                 },
               }}
+              pagination={true}
+              paginationMode="server"
+              rowCount={paginatedSales.total}
+              paginationModel={paginationModel}
+              onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
+              loading={isPaginatedSaleLoading}
             />
             </Suspense>
           </div>

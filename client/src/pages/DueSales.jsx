@@ -11,7 +11,7 @@ import {
   showErrorToast,
   showSuccessToast,
 } from "../components/ToastNotification";
-import { useFetchSalesQuery } from "../redux/apiSlice";
+import { useFetchSalesQuery, useFetchWholesaleClientsQuery } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -24,6 +24,10 @@ const DueSales = () => {
   const [selectedSale, setSelectedSale] = useState({});
 
   const {data: sales = {data: []}, error, isLoading, refetch } = useFetchSalesQuery(undefined, {
+    // refetchOnMountOrArgChange: true
+  });
+
+  const { refetch: refetchWholesaleClients } = useFetchWholesaleClientsQuery(undefined, {
     // refetchOnMountOrArgChange: true
   });
 
@@ -183,6 +187,8 @@ const DueSales = () => {
     bulkBuyerId,
     payAmount,
   }) => {
+  
+    
     try {
       const res = await axios.post(
         `${apiUrl}/payment/create`,
@@ -205,6 +211,7 @@ const DueSales = () => {
 
       showSuccessToast("Payment added & sale record update successfully!");
       refetch();
+      refetchWholesaleClients();
 
     } catch (error) {
       console.log(error);

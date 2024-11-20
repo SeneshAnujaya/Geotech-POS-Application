@@ -13,6 +13,7 @@ const DuePayModal = ({ isOpen, onClose, saleDetails, onCreate}) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
 
         const amountToPay = parseFloat(formData.payAmount);
 
@@ -31,7 +32,7 @@ const DuePayModal = ({ isOpen, onClose, saleDetails, onCreate}) => {
           showErrorToast("Paid amount exceeds remaining balance!.");
           return;
         }
-
+        
 
         onCreate({
           saleId: saleDetails.saleId,

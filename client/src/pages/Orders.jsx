@@ -41,11 +41,6 @@ const Orders = () => {
   const [isBulkBuyer, setIsBulkBuyer] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // const {
-  //   categories,
-  //   loading: categoryLoading,
-  //   error,
-  // } = useSelector((state) => state.categories);
 
    const {
     data: categories = { data: [] },
@@ -55,11 +50,6 @@ const Orders = () => {
     // refetchOnMountOrArgChange: true,
   });
 
-  
-
-  // const { products, loading: productLoading } = useSelector(
-  //   (state) => state.products
-  // );
 
   const {data: products = {data: []}, error: isProductError, isLoading: isProductLoading, refetch } = useFetchProductsQuery(undefined, {
   });
@@ -80,10 +70,6 @@ const Orders = () => {
 
   const dispatch = useDispatch();  
 
-  // useEffect(() => {
-  //   dispatch(fetchCategories());
-  //   dispatch(fetchProducts());
-  // }, [dispatch]);
 
   // Filter product by selected category and search term
   const filteredProducts = useMemo(() => {
@@ -97,13 +83,7 @@ const Orders = () => {
 
       return matchesCategory && matchesSearchTerm;
     });
-  },[products, selectedCategory, searchTerm]);
-  // }) selectedCategory
-  //   ? products.filter(
-  //       (product) => product.categoryId === selectedCategory.categoryId
-  //     )
-  //   : products;
-  
+  },[products, selectedCategory, searchTerm]);  
 
   // Cart functionalities
   const handleAddToCart = (product) => {
@@ -331,7 +311,7 @@ const Orders = () => {
           {/* Bottom list wrap */}
           <div className="">
             <h4 className="text-base font-normal text-slate-300 mt-2">
-              Menu Items {filteredProducts.length}
+              Product Items {filteredProducts.length}
             </h4>
             <div className="flex flex-wrap gap-2 items-center mt-3">
               <div
@@ -375,7 +355,7 @@ const Orders = () => {
                     className="border bg-slate-900 border-slate-700 rounded-md p-4 w-100 max-w-56 flex flex-col justify-between"
                   >
                     <img
-                      src={`http://localhost:3000/uploads/${product.category.categoryPic}`}
+                      src={`http://localhost:3001/uploads/${product.category.categoryPic}`}
                       alt="product-pic"
                       className="w-100 h-100 rounded h-32 object-cover"
                     />

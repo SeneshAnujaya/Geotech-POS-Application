@@ -4,14 +4,50 @@ import { Edit, ExternalLinkIcon, Save, Trash2 } from "lucide-react";
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { showErrorToast, showSuccessToast } from "./ToastNotification";
+import { useFetchPaginatedProductsQuery } from "../redux/apiSlice";
 
-const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) => {
+const DataTable = ({
+  rows,
+  columns,
+  apiEndpoints,
+  role,
+  deleteRow,
+  updateRow,
+  pagination = false,
+  // page,
+  // pageSize,
+  rowCount,
+  // handlePageChange,
+  // handlePageSizeChange
+  paginationModel,
+  setPaginationModel,
+  loading
+}) => {
   const [rowModesModel, setRowModesModel] = useState({});
   const [dataRows, setDataRows] = useState(rows);
+  
+
+  // paginated data use states
+  // const [page, setPage] = useState(1);
+  // const [pageSize, setPageSize] = useState(3);
+  // const [rowCount, setRowCount] = useState(rows?.length || 0);
+  
+
+  // const { data: paginatedProducts = { data: [] }, isError  } =
+  // useFetchPaginatedProductsQuery({page, pageSize});
+  
 
   useEffect(() => {
     setDataRows(rows);
+    // setRowCount(rows?.length || 0);
   }, [rows]);
+
+  // useEffect(() => {
+  //   if (pagination) {
+  //       // setRowCount(paginatedProducts.total || 0);
+  //     };
+  // }, [page, pageSize, pagination]);
+
 
   const handleEditClick = (id) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
@@ -40,11 +76,6 @@ const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) 
         showErrorToast("Row deleted failed");
       }
     } catch (error) {
-      // if (error.response) {
-      //   showErrorToast(error.response.data.message);
-      // } else {
-      //   showErrorToast("An unexpected error occurred");
-      // }
       if (error.data) {
         showErrorToast(
           error.data.message || "An unexpected server error occurred"
@@ -90,8 +121,8 @@ const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) 
   const handleUpdateRowReq = async (updatedRow) => {
     const updatedData = {};
     columns.forEach((col) => {
-      if(col.editable) updatedData[col.field] = updatedRow[col.field];
-    });    
+      if (col.editable) updatedData[col.field] = updatedRow[col.field];
+    });
 
     const { id } = updatedRow;
 
@@ -106,7 +137,7 @@ const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) 
       //     withCredentials: true,
       //   }
       // );
-      const res = await updateRow({id, updatedData}).unwrap();
+      const res = await updateRow({ id, updatedData }).unwrap();
 
       if (res.success) {
         showSuccessToast("Row updated successfully!");
@@ -115,14 +146,6 @@ const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) 
       }
     } catch (error) {
       console.log(error);
-      
-      // if (error.response) {
-      //   showErrorToast(error.response.data.message);
-      // } else if (error.request) {
-      //   showErrorToast("No response from the server");
-      // } else {
-      //   showErrorToast("An unexpected error occurred");
-      // }
       if (error.data) {
         showErrorToast(
           error.data.message || "An unexpected server error occurred"
@@ -173,7 +196,7 @@ const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) 
   return (
     <DataGrid
       rows={rows}
-      columns={[...columns, ...(role == "ADMIN" ? [actionColumn] : [] ) ]}
+      columns={[...columns, ...(role == "ADMIN" ? [actionColumn] : [])]}
       editMode="row"
       rowModesModel={rowModesModel}
       onRowModesModelChange={handleRowModesModelChange}
@@ -182,6 +205,19 @@ const DataTable = ({ rows, columns, apiEndpoints, role, deleteRow, updateRow }) 
       onProcessRowUpdateError={(error) =>
         showErrorToast("Failed to update row")
       }
+      pagination={pagination}
+      paginationMode={pagination ? "server" : "client"}
+      rowCount={pagination ? rowCount : undefined}
+      // page={page}
+      // pageSize={pageSize}
+      // onPageChange={(newPage) => handlePageChange(newPage)}
+      // onPageSizeChange={(newPageSize) => handlePageSizeChange(newPageSize)}
+      // rowsPerPageOptions={[3,5,10]}
+      paginationModel={paginationModel}
+      onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
+      loading={loading}
+  
+      // pageSizeOptions={[1,3,5]}
     />
   );
 };

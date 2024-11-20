@@ -31,7 +31,7 @@ export const deleteuser = async (req, res) => {
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     if (!user) {
@@ -41,7 +41,7 @@ export const deleteuser = async (req, res) => {
     }
 
     await prisma.user.delete({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     res
@@ -61,7 +61,7 @@ export const updateUser = async (req, res) => {
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
     });
 
     if (!user) {
@@ -69,7 +69,7 @@ export const updateUser = async (req, res) => {
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: parseInt(id) },
+      where: { id: id },
       data: { name, email },
     });
 

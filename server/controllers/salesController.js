@@ -16,7 +16,7 @@ export const recordSale = async (req, res) => {
     const sale = await prisma.$transaction(async (prisma) => {
       const newSale = await prisma.sale.create({
         data: {
-          userId: parseInt(userId),
+          userId: userId,
           totalAmount: items.reduce(
             (total, item) => total + item.price * item.cartQuantity,
             0
@@ -90,27 +90,69 @@ export const getAllSales = async (req, res) => {
   }
 };
 
+// Get Paginated Sales
+export const getPaginationSales = async (req, res) => {
+  try {
+    const {page = 0, limit = 1 } = req.query;
+    const pageNumber = parseInt(page);
+    const pageSize = parseInt(limit);
+
+    if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 0 || pageSize <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid page or limit parameter",
+      });
+    }
+
+    const skip = pageNumber * pageSize;
+
+    const sales = await prisma.sale.findMany({
+      include: {
+        SalesItem: {
+          include: {
+            product: true,
+          },
+        },
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      skip,
+      take: pageSize
+    });
+
+    const totalSales = await prisma.sale.count({
+    });
+
+    res.status(200).json({ success: true, data: sales, total: totalSales, page: pageNumber,limit: pageSize });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error fetching sales" });
+  }
+};
+
 // Get Total Revenue
 export const getTotalRevenue = async (req, res) => {
   try {
     const sales = await prisma.sale.findMany({
       select: {
         totalAmount: true,
-        discount: true
+        discount: true,
+        paidAmount: true
       },
     });
 
     const totalRevenue = sales.reduce((sum, sale) => {
-      const discount = Number(sale.discount) || 0;
-      const amountAfterDiscount = parseFloat(sale.totalAmount.toString()) - discount;
-      return sum + amountAfterDiscount;
-    }, 0);
+      // const discount = Number(sale.discount) || 0;
+      // const amountAfterDiscount = parseFloat(sale.totalAmount.toString()) - discount;
+      const paidAmount = parseFloat(sale.paidAmount);
     
-    // const totalRevenue = await prisma.sale.aggregate({
-    //   _sum: {
-    //     totalAmount: true,
-    //   },
-    // });
+    
+      
+      return sum + paidAmount;
+    }, 0);
 
     res.status(200).json({
       success: true,
@@ -150,9 +192,10 @@ export const getDailyRevenue = async (req, res) => {
     });
 
     const dailyRevenue = salesToday.reduce((total, sale) => {
-      const discount = Number(sale.discount) || 0;
-      const amountAfterDiscount = parseFloat(sale.totalAmount.toString()) - discount;
-      return total + amountAfterDiscount;
+      // const discount = Number(sale.discount) || 0;
+      // const amountAfterDiscount = parseFloat(sale.totalAmount.toString()) - discount;
+      const paidAmounts = parseFloat(sale.paidAmount);
+      return total + paidAmounts;
     }, 0);
 
     res
@@ -257,12 +300,12 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
       // step one - create sale record
       const newSale = await prisma.sale.create({
         data: {
-          userId: parseInt(userId),
+          userId: userId,
           totalAmount: items.reduce(
             (total, item) => total + item.price * item.cartQuantity,
             0
           ),
-          paidAmount,
+          paidAmount : parseFloat(paidAmount),
           paymentStatus:
             Number(paidAmount) === 0
               ? "UNPAID"
@@ -271,8 +314,8 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
               : "PARTIALLY_PAID",
           buyerName: clientName,
           phoneNumber,
-          bulkBuyerId: isBulkBuyer ? Number(selectedClientId) : null,
-          discount: discount,
+          bulkBuyerId: isBulkBuyer ? selectedClientId : null,
+          discount: parseFloat(discount),
           invoiceNumber,
           cashierName: currentUserName,
         },
@@ -310,7 +353,7 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
 
       if (isBulkBuyer) {
         const bulkBuyer = await prisma.bulkBuyer.update({
-          where: { bulkBuyerId: Number(selectedClientId) },
+          where: { bulkBuyerId: selectedClientId },
           data: {
             outstandingBalance: {
               increment: grandTotal - paidAmount,

@@ -14,6 +14,11 @@ const apiSlice = createApi({
             providesTags: ['Products']
         }),
 
+        fetchPaginatedProducts: builder.query({
+            query: ({page = 0, limit = 3}) => `/products/getpaginationProducts?page=${page }&limit=${limit}`,
+            providesTags: ['Products']
+        }),
+
         createProduct: builder.mutation({
             query: (formData) => ({
                 url: '/products/add',
@@ -78,6 +83,11 @@ const apiSlice = createApi({
         // Sales Endpoints
         fetchSales: builder.query({
             query: () => '/sales/getSales',
+            providesTags: ['Sales']
+        }),
+
+        fetchPaginatedSales: builder.query({
+            query: ({page = 0, limit = 3}) => `/sales/getpaginationSales?page=${page}&limit=${limit}`,
             providesTags: ['Sales']
         }),
 
@@ -159,5 +169,5 @@ const apiSlice = createApi({
     })
 });
 
-export const {useFetchProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation, useFetchCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation, useCheckSetupStatusQuery} = apiSlice;
+export const {useFetchProductsQuery, useFetchPaginatedProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation, useFetchCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchPaginatedSalesQuery, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation, useCheckSetupStatusQuery} = apiSlice;
 export default apiSlice;

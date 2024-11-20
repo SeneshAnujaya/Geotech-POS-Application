@@ -10,10 +10,8 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories } from "../redux/categories/categorySlice";
 import {
-  DeleteIcon,
   EditIcon,
   ExternalLinkIcon,
-  PenBoxIcon,
   PlusCircleIcon,
   SaveIcon,
   Trash2,
@@ -49,7 +47,8 @@ const Category = () => {
     isLoading,
   } = useFetchCategoriesQuery(undefined, {
     // refetchOnMountOrArgChange: true,
-  });
+  });  
+  
 
   const [createCategory, { isLoading: isCreating }] =
     useCreateCategoryMutation();
@@ -86,6 +85,8 @@ const Category = () => {
     }
   }, [categories.data]);
 
+
+
   const columns = [
     { field: "col1", headerName: "Id", width: 100, editable: false },
     {
@@ -95,7 +96,7 @@ const Category = () => {
       renderCell: (params) => (
         <div className="py-3">
           <img
-            src={`http://localhost:3000/uploads/${params.value}`}
+            src={`http://localhost:3001/uploads/${params.value}`}
             alt="category-pic"
             style={{
               width: "50px",
@@ -300,13 +301,6 @@ const Category = () => {
         showErrorToast("Failed to update category");
       }
     } catch (error) {
-      // if (error.response) {
-      //   showErrorToast(error.response.data.message);
-      // } else if (error.request) {
-      //   showErrorToast("No response from the server");
-      // } else {
-      //   showErrorToast("An unexpected error occurred");
-      // }
       if (error.data) {
         showErrorToast(error.data.message || 'An unexpected error occurred');
       } else {
@@ -335,7 +329,9 @@ const Category = () => {
     </Box>
   );
 
-  if (error || !categories) {
+  if (error || !categories) { 
+    console.log(categories);
+       
     return (
       <MainLayout>
         <div className=" text-red-700 py-4 px-4">Failed to get categories</div>

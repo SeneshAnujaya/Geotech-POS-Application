@@ -6,9 +6,12 @@ const prisma = new PrismaClient();
 
 export const createPayment = async (req, res) => {
 
-  const saleId = Number(req.body.saleId);
+  const saleId = req.body.saleId;
   const payAmount = Number(req.body.payAmount);
-  const bulkBuyerId = req.body.bulkBuyerId ? Number(req.body.bulkBuyerId) : null;
+  const bulkBuyerId = req.body.bulkBuyerId ? req.body.bulkBuyerId : null;
+
+  console.log(bulkBuyerId);
+  
 
   try {
     const payment = await prisma.payment.create({
