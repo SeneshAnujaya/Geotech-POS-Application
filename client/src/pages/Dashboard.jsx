@@ -240,7 +240,7 @@ const Dashboard = () => {
         <div className="flex items-stretch h-auto gap-4 mt-8 flex-col xl:flex-row">
           <div className="w-full  sm:w-[100%] xl:w-[55%]  border-slate-700 rounded-md border py-6 px-6">
             <h3 className="text-lg font-medium text-slate-200">Recent Sales</h3>
-            <div style={{ width: "100%", height: "450px" }} className="mt-8">
+            <div style={{ width: "100%", height: "450px" }} className="mt-8 custom-scrollbar">
               <DataGrid
                 rows={rows}
                 columns={columns}

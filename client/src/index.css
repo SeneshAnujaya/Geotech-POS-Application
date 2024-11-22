@@ -27,4 +27,26 @@ input[type="number"] {
     -ms-appearance: textfield;
 }
 
+@layer utilities {
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+      height: 6px;
+    }
+  
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #13487a; /* Thumb color */
+      border-radius: 8px;
+    }
+  
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #2d3748; /* Track color */
+    }
+  
+    .custom-scrollbar {
+      scrollbar-width: thin; /* For Firefox */
+      scrollbar-color: #204774 #18233f;
+    }
+  }
+  
+
 

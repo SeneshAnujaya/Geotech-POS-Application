@@ -56,7 +56,7 @@ const generatePDF = (
             stack: [
               { text: "GEOTECH COMPUTERS", style: "header", alignment: "left" },
               {
-                text: "Specialized in all types of desktop/laptop computer & accessories",
+                text: "Specialized in all types of desktop/laptop computers & accessories",
                 style: "subheader",
                 alignment: "left",
               },
@@ -193,14 +193,14 @@ const generatePDF = (
             width: "50%",
             stack: [
               {
-                text: "----------------------",
+                text: "------------------------",
                 style: "line",
                 alignment: "left",
                 marginTop: 30,
                 paddingTop: 0,
               },
               {
-                text: "\n\nAuthorized By",
+                text: "\n\nAuthorized Signature",
                 style: "authorized",
                 alignment: "left",
                 marginTop: -20,
@@ -213,14 +213,14 @@ const generatePDF = (
             width: "50%",
             stack: [
               {
-                text: "----------------------",
+                text: "------------------------",
                 style: "right",
                 alignment: "right",
                 marginTop: 30,
                 paddingTop: 0,
               },
               {
-                text: "\n\nReceived By",
+                text: "\n\nCustomer Signature",
                 style: "authorized",
                 alignment: "right",
                 marginTop: -20,

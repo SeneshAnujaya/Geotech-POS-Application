@@ -126,21 +126,74 @@ export const getPaginationProducts = async (req, res) => {
       where: { isDeleted: false },
     });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: products,
-        total: totalProducts,
-        page: pageNumber,
-        limit: pageSize,
-      });
+    res.status(200).json({
+      success: true,
+      data: products,
+      total: totalProducts,
+      page: pageNumber,
+      limit: pageSize,
+    });
   } catch (error) {
     console.log(error);
 
     res
       .status(500)
       .json({ success: false, message: "Error fetching products" });
+  }
+};
+
+// PAGINATED FILTER PRODUCTS QUERY
+export const getPaginatedFilteredProducts = async (req, res) => {
+  const { category, search, page = 0, limit = 20 } = req.query;
+
+  try {
+    const pageNumber = parseInt(page, 10);
+    const pageLimit = parseInt(limit, 10);
+
+    const skip = pageNumber * pageLimit;
+
+    const where = {
+      isDeleted: false,
+    };
+
+    if (category) {
+      where.category = {
+      name: { contains: category, mode: "insensitive" },
+      }
+    };
+
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { sku: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const products = await prisma.product.findMany({
+      where,
+      skip,
+      take: pageLimit,
+      include: {
+        category: true,
+      },
+    });
+
+    const totalCount = await prisma.product.count({  where: { isDeleted: false } });
+
+    res.status(200).json({
+      success: true,
+      products,
+      total: totalCount,
+      page: pageNumber,
+      limit: pageLimit,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching paginated filtered products" });
   }
 };
 
@@ -201,12 +254,10 @@ export const updateProduct = async (req, res) => {
     !brandName &&
     !warrantyPeriod
   ) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "At least one field must be provided for update",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "At least one field must be provided for update",
+    });
   }
 
   try {
@@ -241,13 +292,11 @@ export const updateProduct = async (req, res) => {
       },
     });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Product updated successfully!",
-        data: updatedProduct,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Product updated successfully!",
+      data: updatedProduct,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error updating product" });
   }

@@ -15,9 +15,24 @@ const apiSlice = createApi({
         }),
 
         fetchPaginatedProducts: builder.query({
-            query: ({page = 0, limit = 3}) => `/products/getpaginationProducts?page=${page }&limit=${limit}`,
+            query: ({page = 0, limit = 20}) => `/products/getpaginationProducts?page=${page}&limit=${limit}`,
             providesTags: ['Products']
         }),
+
+        fetchFilteredPaginatedProducts: builder.query({
+            query: ({category, search, page = 0, limit = 20}) => {
+                const params = new URLSearchParams({
+                    ...(category && {category}),
+                    ...(search && {search}),
+                    page: page.toString(),
+                    limit: limit.toString()
+                });
+                return `/products/getfilteredPaginatedProducts?${params.toString()}`;
+
+            },
+            providesTags: ['Products']
+        }),
+    
 
         createProduct: builder.mutation({
             query: (formData) => ({
@@ -169,5 +184,5 @@ const apiSlice = createApi({
     })
 });
 
-export const {useFetchProductsQuery, useFetchPaginatedProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation, useFetchCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchPaginatedSalesQuery, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation, useCheckSetupStatusQuery} = apiSlice;
+export const {useFetchProductsQuery, useFetchPaginatedProductsQuery, useFetchFilteredPaginatedProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation, useFetchCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchPaginatedSalesQuery, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation, useCheckSetupStatusQuery} = apiSlice;
 export default apiSlice;
