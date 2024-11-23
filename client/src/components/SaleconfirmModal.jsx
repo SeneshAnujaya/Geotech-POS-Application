@@ -4,90 +4,93 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchWholesaleClients } from "../redux/wholesaleclients/wholesaleclientSlice";
 import { useFetchWholesaleClientsQuery } from "../redux/apiSlice";
 
-const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => {
+const SaleconfirmModal = ({
+  isOpen,
+  onClose,
+  onCreate,
+  isBulkBuyer,
+  total,
+}) => {
   
-
-  // const { wholesaleClients, loading, error } = useSelector((state) => state.wholesaleClients);
-
-  const {data: wholesaleClients = {data: []}, error, isLoading } = useFetchWholesaleClientsQuery(undefined, {
+  const {
+    data: wholesaleClients = { data: [] },
+    error,
+    isLoading,
+  } = useFetchWholesaleClientsQuery(undefined, {
     // refetchOnMountOrArgChange: true
   });
-  
+
   const dispatch = useDispatch();
 
   useEffect(() => {
     isBulkBuyer ? dispatch(fetchWholesaleClients()) : "";
   }, [dispatch]);
 
-  
- 
-  const [grandTotal, setGrandTotal ] = useState(total);
+  const [grandTotal, setGrandTotal] = useState(total);
 
   const [formData, setFormData] = useState({
-    clientName: '',
-    phonenumber: '',
+    clientName: "",
+    phonenumber: "",
     discount: 0,
     paidAmount: isBulkBuyer ? grandTotal : grandTotal,
     selectedClientId: null,
   });
 
-
-
   useEffect(() => {
     const newTotal = (total - formData.discount).toFixed(2);
     const updatedGrandTotal = newTotal >= 0 ? parseFloat(newTotal) : 0;
     setGrandTotal(updatedGrandTotal);
-
   }, [formData.discount, total, isBulkBuyer]);
 
   useEffect(() => {
-    if(isBulkBuyer) {
-      setFormData((prevData) => ({...prevData, paidAmount : grandTotal}));
+    if (isBulkBuyer) {
+      setFormData((prevData) => ({ ...prevData, paidAmount: grandTotal }));
     } else {
-      setFormData((prevData) => ({...prevData, paidAmount: grandTotal}));
+      setFormData((prevData) => ({ ...prevData, paidAmount: grandTotal }));
     }
-  }, [isBulkBuyer, grandTotal,total])
+  }, [isBulkBuyer, grandTotal, total]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!formData.clientName || !formData.phonenumber) {
-   
       showErrorToast("Please fill in all required fields.");
       return;
     }
 
-      // Validate select box when the sale is for a bulk buyer
-  if (isBulkBuyer && !formData.selectedClientId) {
-    showErrorToast("Please select a registered customer.");
-    return;
-  }
+    // Validate select box when the sale is for a bulk buyer
+    if (isBulkBuyer && !formData.selectedClientId) {
+      showErrorToast("Please select a registered customer.");
+      return;
+    }
 
-  if (isBulkBuyer && formData.paidAmount == "") {
-    showErrorToast("Paid amount cannot be empty.");
-    return;
-  }
-    
-  if (isBulkBuyer && formData.paidAmount > grandTotal) {
-    showErrorToast("Paid amount cannot exceed the total.");
-    return;
-  }
+    if (isBulkBuyer && formData.paidAmount == "") {
+      showErrorToast("Paid amount cannot be empty.");
+      return;
+    }
 
-  if (Number(formData.discount) > Number(total)) {
-    
-    showErrorToast("Discount cannot exceed the total amount.");
-    return;
-  }
+    if (isBulkBuyer && formData.paidAmount > grandTotal) {
+      showErrorToast("Paid amount cannot exceed the total.");
+      return;
+    }
 
+    if (Number(formData.discount) > Number(total)) {
+      showErrorToast("Discount cannot exceed the total amount.");
+      return;
+    }
 
-    const dataToSubmit = { ...formData, grandTotal, selectedClientId: isBulkBuyer ? formData.selectedClientId : null,  };
-    
+    const dataToSubmit = {
+      ...formData,
+      grandTotal,
+      selectedClientId: isBulkBuyer ? formData.selectedClientId : null,
+    };
+
     onCreate(dataToSubmit);
     onClose();
 
     setFormData({
-      clientName: '',
-      phonenumber: '',
+      clientName: "",
+      phonenumber: "",
       discount: 0,
       paidAmount: isBulkBuyer ? grandTotal : total, // Reset to default based on isBulkBuyer
       selectedClientId: null,
@@ -106,9 +109,9 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
     const selectedClientId = e.target.value;
     setFormData({
       ...formData,
-      selectedClientId, 
+      selectedClientId,
     });
-  }
+  };
 
   if (!isOpen) return null;
   return (
@@ -130,9 +133,8 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
             name="clientName"
             placeholder="Customer Name..."
             value={formData.clientName}
-            className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900" 
+            className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
             onChange={handleChange}
-          
           />
           <label
             htmlFor="phonenumber"
@@ -147,27 +149,31 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
             value={formData.phonenumber}
             className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
             onChange={handleChange}
-          
           />
 
           {isBulkBuyer && (
             <>
-             <label
-             htmlFor="wholesaleClient"
-             className="block text-sm font-medium text-gray-300"
-           >
-             Select Registered Customer
-           </label>
-           <select className="w-full p-2 rounded-md text-slate-800" onChange={handleClientSelectChange} >
-            <option value="">Select a client...</option>
-            {wholesaleClients.data.map((client) => {
-              return  <option key={client.bulkBuyerId} value={client.bulkBuyerId}>{client.companyName}</option>
-            })}
-            
-           </select>
-           </>
+              <label
+                htmlFor="wholesaleClient"
+                className="block text-sm font-medium text-gray-300"
+              >
+                Select Registered Customer
+              </label>
+              <select
+                className="w-full p-2 rounded-md text-slate-800"
+                onChange={handleClientSelectChange}
+              >
+                <option value="">Select a client...</option>
+                {wholesaleClients.data.map((client) => {
+                  return (
+                    <option key={client.bulkBuyerId} value={client.bulkBuyerId}>
+                      {client.companyName}
+                    </option>
+                  );
+                })}
+              </select>
+            </>
           )}
-         
 
           <label
             htmlFor="discount"
@@ -183,52 +189,50 @@ const SaleconfirmModal = ({ isOpen, onClose, onCreate, isBulkBuyer, total }) => 
             className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
             onChange={handleChange}
             min="0"
-          
           />
 
-{ isBulkBuyer && (
-  <>
-          <label
-            htmlFor="paidAmount"
-            className="block text-sm font-medium text-gray-300 mt-2"
-          >
-            Paid Amount
-          </label>
-          <input
-            type="number"
-            name="paidAmount"
-            placeholder="Enter Paid Amount..."
-            value={formData.paidAmount}
-            className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
-            onChange={handleChange}
-           
-          />
-          </>
-          ) 
-}
+          {isBulkBuyer && (
+            <>
+              <label
+                htmlFor="paidAmount"
+                className="block text-sm font-medium text-gray-300 mt-2"
+              >
+                Paid Amount
+              </label>
+              <input
+                type="number"
+                name="paidAmount"
+                placeholder="Enter Paid Amount..."
+                value={formData.paidAmount}
+                className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
+                onChange={handleChange}
+              />
+            </>
+          )}
 
           <p className="text-[0.95rem] text-slate-200 font-semibold mt-6">
             Payment Summary
           </p>
           <div className="flex justify-between items-center gap-2 mt-2">
             <p className="text-slate-300 text-[0.95rem]">Discount</p>
-            <p className="text-slate-300 text-[0.95rem]">{formData.discount ? formData.discount : 0.00 }</p>
+            <p className="text-slate-300 text-[0.95rem]">
+              {formData.discount ? formData.discount : 0.0}
+            </p>
           </div>
-          { isBulkBuyer && (
-          
-          <div className="flex justify-between items-center gap-2 mt-2">
-            <p className="text-slate-300 text-[0.95rem]">Paid Amount</p>
-            <p className="text-slate-300 text-[0.95rem]">{formData.paidAmount ? formData.paidAmount : 0.00 }</p>
-           
-            
-          
-          </div>
-          )
-}
+          {isBulkBuyer && (
+            <div className="flex justify-between items-center gap-2 mt-2">
+              <p className="text-slate-300 text-[0.95rem]">Paid Amount</p>
+              <p className="text-slate-300 text-[0.95rem]">
+                {formData.paidAmount ? formData.paidAmount : 0.0}
+              </p>
+            </div>
+          )}
           <div className="w-full h-px bg-slate-700 mt-3 mb-2"></div>
           <div className="flex justify-between items-center gap-2 mt-2">
             <p className="text-slate-200 font-semibold text-[1.05rem]">Total</p>
-            <p className="text-slate-200 font-semibold text-[1.1rem]">LKR {grandTotal.toFixed(2)}</p>
+            <p className="text-slate-200 font-semibold text-[1.1rem]">
+              LKR {grandTotal.toFixed(2)}
+            </p>
           </div>
 
           <div className="mt-6">

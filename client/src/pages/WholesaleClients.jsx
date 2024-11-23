@@ -12,7 +12,12 @@ import DataTable from "../components/DataTable";
 import { useDispatch, useSelector } from "react-redux";
 import WholesaleClientAddModal from "../components/WholesaleClientAddModal";
 import { fetchWholesaleClients } from "../redux/wholesaleclients/wholesaleclientSlice";
-import { useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation } from "../redux/apiSlice";
+import {
+  useFetchWholesaleClientsQuery,
+  useCreateWholesaleClientMutation,
+  useDeleteWholesaleClientMutation,
+  useUpdateWholesaleClientMutation,
+} from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const WholesaleClients = () => {
@@ -21,36 +26,34 @@ const WholesaleClients = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
- 
 
-  const {data: wholesaleClients = {data: []}, error, isLoading } = useFetchWholesaleClientsQuery(undefined, {
+  const {
+    data: wholesaleClients = { data: [] },
+    error,
+    isLoading,
+  } = useFetchWholesaleClientsQuery(undefined, {
     // refetchOnMountOrArgChange: true
   });
 
   const [createWholesaleClient, { isLoading: isCreating }] =
-  useCreateWholesaleClientMutation();
+    useCreateWholesaleClientMutation();
 
-
-  
-  const [deleteWholesaleClient, {isLoading: isDeleting}] = useDeleteWholesaleClientMutation();
-  const [updateWholesaleClient, {isLoading: isUpdating}] = useUpdateWholesaleClientMutation();
+  const [deleteWholesaleClient, { isLoading: isDeleting }] =
+    useDeleteWholesaleClientMutation();
+  const [updateWholesaleClient, { isLoading: isUpdating }] =
+    useUpdateWholesaleClientMutation();
 
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
     const loaderTimer = setTimeout(() => {
       if (!isLoading) setShowLoader(false);
-    }, 100); 
+    }, 100);
 
     return () => clearTimeout(loaderTimer);
   }, [isLoading]);
-  
-
- 
-  
 
   const role = currentUser.rest.role;
-
 
   // DATA GRID ROWS COLUMNS
   const rows = wholesaleClients.data.map((client) => ({
@@ -60,9 +63,8 @@ const WholesaleClients = () => {
     col3: client.phoneNumber,
     col4: client.email,
     col5: client.companyName,
-    col6: Number((client.outstandingBalance)).toFixed(2),
+    col6: Number(client.outstandingBalance).toFixed(2),
     col7: new Date(client.createdAt).toLocaleString(),
-
   }));
 
   const columns = [
@@ -109,19 +111,7 @@ const WholesaleClients = () => {
   // };
 
   const handleCreateWholesaleClient = async (formData) => {
-    // setLoading(true);
     try {
-      // const res = await axios.post(
-      //   "http://localhost:3000/api/wholesaleClient/add",
-      //   formData,
-      //   {
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     withCredentials: true,
-      //   }
-
-      // );
       const response = await createWholesaleClient(formData).unwrap();
       if (!response.success) {
         showErrorToast(data.message || "Error occurred");
@@ -129,7 +119,6 @@ const WholesaleClients = () => {
       }
 
       showSuccessToast("Client created successfully!");
-    
     } catch (error) {
       console.log(error);
 
@@ -140,7 +129,6 @@ const WholesaleClients = () => {
       } else {
         showErrorToast("An unexpected error occurred");
       }
-    
     }
   };
 
@@ -152,7 +140,7 @@ const WholesaleClients = () => {
             <Skeleton
               key={colIndex}
               variant="rounded"
-              width={220} 
+              width={220}
               height={60}
               sx={{ marginRight: 1 }}
               animation="wave"
@@ -165,51 +153,48 @@ const WholesaleClients = () => {
 
   return (
     <MainLayout>
-    
-      
-     
-        <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border min-h-[800px]">
-          {/* Header bar */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold">Wholesale Clients</h1>
-            {role == "ADMIN" && (
-              <button
-                className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <PlusCircleIcon className="w-5 h-5 mr-2" />
-                Add Client
-              </button>
-            )}
-          </div>
-
-            {showLoader || isLoading ? (  renderTableSkeleton()) :(
-              <>
-          <div>
-
-            <div className="w-full max-w-fit mt-8">
-            <Suspense fallback={<CircularProgress color="primary" />}>
-              <DataTable
-                rows={rows}
-                columns={columns}
-                // apiEndpoints={tableApiEndpoints}
-                role={role}
-                deleteRow={deleteWholesaleClient}
-                updateRow={updateWholesaleClient}
-              />
-              </Suspense>
-            </div>
-          </div>
-          {/* MODAL */}
-          <WholesaleClientAddModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onCreate={handleCreateWholesaleClient}
-          />
-          </>
-           ) }
+      <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border min-h-[800px]">
+        {/* Header bar */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">Wholesale Clients</h1>
+          {role == "ADMIN" && (
+            <button
+              className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <PlusCircleIcon className="w-5 h-5 mr-2" />
+              Add Client
+            </button>
+          )}
         </div>
-     
+
+        {showLoader || isLoading ? (
+          renderTableSkeleton()
+        ) : (
+          <>
+            <div>
+              <div className="w-full max-w-fit mt-8 h-[680px]">
+                <Suspense fallback={<CircularProgress color="primary" />}>
+                  <DataTable
+                    rows={rows}
+                    columns={columns}
+                    // apiEndpoints={tableApiEndpoints}
+                    role={role}
+                    deleteRow={deleteWholesaleClient}
+                    updateRow={updateWholesaleClient}
+                  />
+                </Suspense>
+              </div>
+            </div>
+            {/* MODAL */}
+            <WholesaleClientAddModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onCreate={handleCreateWholesaleClient}
+            />
+          </>
+        )}
+      </div>
     </MainLayout>
   );
 };

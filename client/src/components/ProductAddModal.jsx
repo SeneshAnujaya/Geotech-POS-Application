@@ -27,7 +27,6 @@ const ProductAddModal = ({ isOpen, onClose, onCreate }) => {
     });
   };
 
-
   if (!isOpen) return null;
 
   return (
@@ -83,9 +82,11 @@ const ProductAddModal = ({ isOpen, onClose, onCreate }) => {
           >
             <option value="">Select a category</option>
             {categories.map((category, index) => (
-
-              
-              <option className="text-gray-700" key={index} value={category.categoryId}>
+              <option
+                className="text-gray-700"
+                key={index}
+                value={category.categoryId}
+              >
                 {category.name}
               </option>
             ))}
@@ -126,7 +127,7 @@ const ProductAddModal = ({ isOpen, onClose, onCreate }) => {
             onChange={handleChange}
             required
           />
-           <label
+          <label
             htmlFor="wholesalePrice"
             className="block text-sm font-medium text-gray-300"
           >

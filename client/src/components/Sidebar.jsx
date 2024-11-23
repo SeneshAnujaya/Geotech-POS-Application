@@ -16,9 +16,9 @@ import { setIsSidebarCollapsed } from "../redux/uiSetting/uiSettingsSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { showSuccessToast } from "./ToastNotification";
-import showErrorToast from './ToastNotification';
+import showErrorToast from "./ToastNotification";
 import axios from "axios";
-import {signOut} from '../redux/user/userSlice';
+import { signOut } from "../redux/user/userSlice";
 import LogoutConfirm from "./LogoutConfirm";
 import { useState } from "react";
 
@@ -52,7 +52,6 @@ const SidebarLink = ({ href, icon: Icon, label, isCollapsed }) => {
 };
 
 const Sidebar = () => {
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isSidebarCollapsed } = useSelector((state) => state.uisetting);
 
@@ -64,24 +63,19 @@ const Sidebar = () => {
   };
 
   const handleLogout = async () => {
-
-    
     try {
       await axios.post(`${apiUrl}/auth/signout`);
       dispatch(signOut());
-      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       showSuccessToast("Logged out successfully!");
-      navigate('/sign-in');
+      navigate("/sign-in");
     } catch (error) {
       console.log(error);
-      
+
       showErrorToast("Error logging out, please try again");
     }
   };
-
-  // dispatch(signOut());
-
-  // showSuccessToast("Logged out successfully!");
 
   const sidebarClassNames = `fixed flex flex-col ${
     isSidebarCollapsed ? "w-0 md:w-16" : "w-72 md:64"
@@ -142,13 +136,13 @@ const Sidebar = () => {
           label="Sales"
           isCollapsed={isSidebarCollapsed}
         />
-          <SidebarLink
+        <SidebarLink
           href="/duesales"
           icon={BadgeAlertIcon}
           label="Outstanding Sales"
           isCollapsed={isSidebarCollapsed}
         />
-         <SidebarLink
+        <SidebarLink
           href="/Wholesales"
           icon={Users}
           label="Wholesale Clients"
@@ -179,10 +173,10 @@ const Sidebar = () => {
         </div>
         {/* MODAL */}
         <LogoutConfirm
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            logOut={handleLogout}
-          />
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          logOut={handleLogout}
+        />
       </div>
 
       {/* footer */}

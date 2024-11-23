@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchSales } from "../redux/sales/saleSlice";
 import { DataGrid } from "@mui/x-data-grid";
 import axios from "axios";
@@ -36,8 +36,6 @@ const aggregateSalesByDate = (sales) => {
   sales.forEach((sale) => {
     const saleDate = new Date(sale.createdAt).toLocaleDateString();
     const saleAmount = parseFloat(sale.paidAmount);
-   
-    
 
     if (!salesByDate[saleDate]) {
       salesByDate[saleDate] = 0;
@@ -67,18 +65,12 @@ const Dashboard = () => {
   const [dailyRevenue, setDailyRevenue] = useState(0);
   const [monthlySaleCount, setMonthlySaleCount] = useState(0);
 
-  // useEffect(() => {
-  //   dispatch(fetchSales());
-  // }, [dispatch]);
-
   useEffect(() => {
     const last14DaysSales = getLast14DaysSales(sales);
     const aggregatedData = aggregateSalesByDate(last14DaysSales);
-    // const formattedData = sales.map(sale => ({
-    //   date: new Date(sale.createdAt).toLocaleDateString(),
-    //   amount: sale.totalAmount
-    // }));
-    setSalesData(aggregatedData);
+    if (JSON.stringify(salesData) !== JSON.stringify(aggregatedData)) {
+      setSalesData(aggregatedData);
+    }
   }, [sales]);
 
   // Sales data for datagrid
@@ -142,8 +134,8 @@ const Dashboard = () => {
 
   const sortModel = [
     {
-      field: "col7", // Replace with your date field name
-      sort: "desc", // Sort in descending order
+      field: "col7",
+      sort: "desc",
     },
   ];
 
@@ -240,7 +232,10 @@ const Dashboard = () => {
         <div className="flex items-stretch h-auto gap-4 mt-8 flex-col xl:flex-row">
           <div className="w-full  sm:w-[100%] xl:w-[55%]  border-slate-700 rounded-md border py-6 px-6">
             <h3 className="text-lg font-medium text-slate-200">Recent Sales</h3>
-            <div style={{ width: "100%", height: "450px" }} className="mt-8 custom-scrollbar">
+            <div
+              style={{ width: "100%", height: "450px" }}
+              className="mt-8 custom-scrollbar"
+            >
               <DataGrid
                 rows={rows}
                 columns={columns}
@@ -302,7 +297,7 @@ const Dashboard = () => {
                 <XAxis dataKey="date" stroke="#8884d8" />
                 <YAxis stroke="#8884d8" />
                 <Tooltip
-                  cursor={{ fill: "rgba(96, 165, 250, 0.2)" }} // Highlight bar on hover
+                  cursor={{ fill: "rgba(96, 165, 250, 0.2)" }}
                   contentStyle={{
                     backgroundColor: "#162039",
                     borderRadius: "3px",

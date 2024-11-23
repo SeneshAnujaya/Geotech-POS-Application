@@ -15,8 +15,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const SignUp = () => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
-  const { refetch } = useFetchUsersQuery(undefined, {
-  });
+  const { refetch } = useFetchUsersQuery(undefined, {});
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -55,7 +54,7 @@ const SignUp = () => {
       showSuccessToast("Account created successfully!");
     } catch (error) {
       console.log(error);
-      
+
       if (error.response) {
         // Handle server-side errors
         showErrorToast(error.response.data.message || "Server error");
@@ -79,7 +78,7 @@ const SignUp = () => {
         <p className='text-white font-light text-xl mt-6'>Welcome to geotech pos system</p>
       </div> */}
         <div className="p-4 w-full ">
-          <div className="w-full max-w-md mx-auto  rounded-md border-slate-700 px-10 py-14 bg-[#002136] bg-[#00263d] border">
+          <div className="w-full max-w-md mx-auto  rounded-md border-slate-700 px-10 py-14 bg-[#002136] border">
             <h1 className="text-white text-3xl mb-6">GEOTECH</h1>
             <p className="mb-12 text-slate-300">
               Please Signup For create Admin Account

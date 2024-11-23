@@ -1,25 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 
-const userAddModal = ({ isOpen, onClose, onCreate}) => {
+const userAddModal = ({ isOpen, onClose, onCreate }) => {
+  const [formData, setFormData] = useState({});
 
-    const [formData, setFormData] = useState({});
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onCreate(formData);
+    onClose();
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onCreate(formData);
-        onClose();
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
-    const handleChange = (e) => {
-        const {name, value} = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-    }
-
-
-    if (!isOpen) return null;
+  if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-gray-950 bg-opacity-70 overflow-y-auto h-full w-full z-20">
       <div className="relative top-20 mx-auto p-5 border border-slate-600 w-96 shadow-lg rounded-md bg-blue-950">
@@ -42,7 +40,7 @@ const userAddModal = ({ isOpen, onClose, onCreate}) => {
             onChange={handleChange}
             required
           />
-           <label
+          <label
             htmlFor="email"
             className="block text-sm font-medium text-gray-300"
           >
@@ -57,7 +55,7 @@ const userAddModal = ({ isOpen, onClose, onCreate}) => {
             onChange={handleChange}
             required
           />
-              <label
+          <label
             htmlFor="password"
             className="block text-sm font-medium text-gray-300"
           >
@@ -88,7 +86,7 @@ const userAddModal = ({ isOpen, onClose, onCreate}) => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default userAddModal
+export default userAddModal;

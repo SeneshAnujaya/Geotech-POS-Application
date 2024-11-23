@@ -47,6 +47,7 @@ const Orders = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isBulkBuyer, setIsBulkBuyer] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState();
 
   const [page, setPage] = useState(0);
   const [limit] = useState(20);
@@ -67,17 +68,16 @@ const Orders = () => {
   } = useFetchFilteredPaginatedProductsQuery({
     page,
     category: selectedCategory?.name,
-    search: searchTerm,
+    search: debouncedSearchTerm,
     limit: limit,
-  });
+  },
+
+);
 
   const productList = products?.products || [];
 
   const totalPages = Math.ceil(products.total / limit);
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
-
-  // const {data: products = {data: []}, error: isProductError, isLoading: isProductLoading, refetch } = useFetchProductsQuery(undefined, {
-  // });
 
   const { refetch: refetchSales } = useFetchSalesQuery(undefined, {});
 
@@ -97,23 +97,14 @@ const Orders = () => {
 
   const dispatch = useDispatch();
 
-  // Filter product by selected category and search term
-  // const filteredProducts = useMemo(() => {
-  //   return products.data.filter((product) => {
-  //     const matchesCategory =
-  //       !selectedCategory || product.categoryId === selectedCategory.categoryId;
-
-  //     const matchesSearchTerm =
-  //       (product.name &&
-  //         product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-  //       (product.brand &&
-  //         product.brand.toLowerCase().includes(searchTerm.toLowerCase())) ||
-  //       (product.sku &&
-  //         product.sku.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  //     return matchesCategory && matchesSearchTerm;
-  //   });
-  // }, [products, selectedCategory, searchTerm]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => {
+      clearTimeout(timer);
+    }
+  },[searchTerm]);
 
   // Cart functionalities
   const handleAddToCart = (product) => {
@@ -239,7 +230,6 @@ const Orders = () => {
           invoiceNumber
         );
 
-        // dispatch(fetchProducts());
         refetch();
         refetchSales();
         refetchWholesaleClients();

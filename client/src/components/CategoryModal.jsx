@@ -11,21 +11,18 @@ const CategoryModal = ({ isOpen, onClose, onCreate, percentage }) => {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
-    if(name === "categoryPic") {
+    if (name === "categoryPic") {
       setFormData({
         ...formData,
-        categoryPic : files[0],
-      }); 
+        categoryPic: files[0],
+      });
     } else {
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  }
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
-
- 
-  
 
   if (!isOpen) return null;
 
@@ -51,20 +48,20 @@ const CategoryModal = ({ isOpen, onClose, onCreate, percentage }) => {
             onChange={handleChange}
             required
           />
-           <label
+          <label
             htmlFor="categoryPic"
             className="block text-sm font-medium text-gray-300"
           >
             Category Image
           </label>
-          <input 
-            type="file" 
+          <input
+            type="file"
             name="categoryPic"
-            accept="image/*" 
+            accept="image/*"
             className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-white"
-            onChange={handleChange} 
+            onChange={handleChange}
           />
-          {percentage >! 0 && (
+          {percentage > !0 && (
             <div className="w-full bg-[f3f3f3] my-3">
               <div>Uploading image {percentage}%</div>
             </div>

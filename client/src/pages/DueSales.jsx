@@ -1,4 +1,4 @@
-import { useEffect, useState,Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,56 +11,65 @@ import {
   showErrorToast,
   showSuccessToast,
 } from "../components/ToastNotification";
-import { useFetchSalesQuery, useFetchWholesaleClientsQuery } from "../redux/apiSlice";
+import {
+  useFetchSalesQuery,
+  useFetchWholesaleClientsQuery,
+} from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const DueSales = () => {
-  
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState({});
 
-  const {data: sales = {data: []}, error, isLoading, refetch } = useFetchSalesQuery(undefined, {
+  const {
+    data: sales = { data: [] },
+    error,
+    isLoading,
+    refetch,
+  } = useFetchSalesQuery(undefined, {
     // refetchOnMountOrArgChange: true
   });
 
-  const { refetch: refetchWholesaleClients } = useFetchWholesaleClientsQuery(undefined, {
-    // refetchOnMountOrArgChange: true
-  });
+  const { refetch: refetchWholesaleClients } = useFetchWholesaleClientsQuery(
+    undefined,
+    {
+      // refetchOnMountOrArgChange: true
+    }
+  );
 
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
     const loaderTimer = setTimeout(() => {
       if (!isLoading) setShowLoader(false);
-    }, 100); 
+    }, 100);
 
     return () => clearTimeout(loaderTimer);
   }, [isLoading]);
-
-
 
   const filteredSales = sales.data.filter(
     (sale) =>
       sale.paymentStatus === "UNPAID" || sale.paymentStatus === "PARTIALLY_PAID"
   );
 
-  const rows = filteredSales.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map((sale) => ({
-    id: sale.saleId,
-    col1: sale.invoiceNumber,
-    col2: sale.buyerName,
-    col3: sale.phoneNumber,
-    col4: sale.totalAmount,
-    col5: sale.discount,
-    col6: sale.totalAmount - sale.discount,
-    col7: sale.paidAmount,
-    col8: sale.paymentStatus,
-    col9: sale.user?.name || sale.cashierName || "N/A",
-    // col10: new Date(sale.createdAt).toLocaleString(),
-  }));
+  const rows = filteredSales
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map((sale) => ({
+      id: sale.saleId,
+      col1: sale.invoiceNumber,
+      col2: sale.buyerName,
+      col3: sale.phoneNumber,
+      col4: sale.totalAmount,
+      col5: sale.discount,
+      col6: sale.totalAmount - sale.discount,
+      col7: sale.paidAmount,
+      col8: sale.paymentStatus,
+      col9: sale.user?.name || sale.cashierName || "N/A",
+      // col10: new Date(sale.createdAt).toLocaleString(),
+    }));
 
   const columns = [
     { field: "col1", headerName: "Invoice Number", width: 200 },
@@ -142,7 +151,8 @@ const DueSales = () => {
     }));
 
     const total = parseFloat(selectSaleRecord.totalAmount);
-    const currentUserName = selectSaleRecord.user?.name || selectSaleRecord.cashierName || "N/A";
+    const currentUserName =
+      selectSaleRecord.user?.name || selectSaleRecord.cashierName || "N/A";
     const billingName = selectSaleRecord.buyerName;
     const phoneNumber = selectSaleRecord.phoneNumber;
     const discount = selectSaleRecord.discount;
@@ -187,8 +197,6 @@ const DueSales = () => {
     bulkBuyerId,
     payAmount,
   }) => {
-  
-    
     try {
       const res = await axios.post(
         `${apiUrl}/payment/create`,
@@ -212,10 +220,9 @@ const DueSales = () => {
       showSuccessToast("Payment added & sale record update successfully!");
       refetch();
       refetchWholesaleClients();
-
     } catch (error) {
       console.log(error);
-      
+
       showErrorToast("Payment added & sale record update failed!");
     }
   };
@@ -228,7 +235,7 @@ const DueSales = () => {
             <Skeleton
               key={colIndex}
               variant="rounded"
-              width={300} 
+              width={300}
               height={60}
               sx={{ marginRight: 1 }}
               animation="wave"
@@ -250,88 +257,86 @@ const DueSales = () => {
   }
   return (
     <MainLayout>
-     
-      
-    
-        <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border">
-          {/* Header bar */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold">Outstanding Sales</h1>
-          </div>
-
-          {showLoader || isLoading ? (  renderTableSkeleton()) :(
-            <>
-          <div
-            style={{ width: "100%", maxWidth: "fit-content", height: "700px" }}
-            className="mt-8"
-          >
-                    <Suspense fallback={<CircularProgress color="primary" />}>
-            <DataGrid
-              rows={rows}
-              columns={columns}
-              className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
-              sx={{
-                // Style for cells
-                // "& .MuiDataGrid-cell": {
-                //   color: "#fff", // Text color for cells
-                // },
-                // Style for column headers
-                "& .MuiDataGrid-columnHeaders": {
-                  backgroundColor: "transparent", // Background color for header
-                  color: "#fff", // Text color for header
-                },
-                // Style for virtual scroller (rows area)
-                "& .MuiDataGrid-virtualScroller": {
-                  backgroundColor: "transparent", // Background color for rows
-                },
-                // Style for footer container
-                "& .MuiDataGrid-footerContainer": {
-                  backgroundColor: "transparent", // Background color for footer
-                },
-                // Style for footer cells
-                "& .MuiDataGrid-footerCell": {
-                  color: "#fff", // Text color for footer cells
-                },
-                // Style for toolbar container
-                "& .MuiDataGrid-toolbarContainer": {
-                  backgroundColor: "transparent", // Background color for toolbar
-                },
-                // Style for checkbox color
-                "& .MuiCheckbox-root": {
-                  color: "#fff", // Checkbox color
-                },
-                // Style for icons (like pagination and filtering icons)
-                "& .MuiDataGrid-iconSeparator": {
-                  color: "#fff", // Color for separator icon
-                },
-                "& .MuiDataGrid-iconButton": {
-                  color: "#fff", // Color for icon buttons (e.g., pagination controls)
-                },
-                // Style for pagination controls
-                "& .MuiPaginationItem-root": {
-                  color: "#fff", // Color for pagination item text
-                },
-              }}
-            />
-            </Suspense>
-          </div>
-
-          {/* Invoice Modal */}
-          <InvoiceModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-          />
-          {/* Pay Modal */}
-          <DuePayModal
-            isOpen={isPayModalOpen}
-            onClose={() => setIsPayModalOpen(false)}
-            saleDetails={selectedSale}
-            onCreate={handlePaymentSubmission}
-          />
-          </>
-          )}
+      <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border">
+        {/* Header bar */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">Outstanding Sales</h1>
         </div>
-    
+
+        {showLoader || isLoading ? (
+          renderTableSkeleton()
+        ) : (
+          <>
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "fit-content",
+                height: "680px",
+              }}
+              className="mt-8"
+            >
+              <Suspense fallback={<CircularProgress color="primary" />}>
+                <DataGrid
+                  rows={rows}
+                  columns={columns}
+                  className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
+                  sx={{
+                    // Style for column headers
+                    "& .MuiDataGrid-columnHeaders": {
+                      backgroundColor: "transparent", // Background color for header
+                      color: "#fff", // Text color for header
+                    },
+                    // Style for virtual scroller (rows area)
+                    "& .MuiDataGrid-virtualScroller": {
+                      backgroundColor: "transparent", // Background color for rows
+                    },
+                    // Style for footer container
+                    "& .MuiDataGrid-footerContainer": {
+                      backgroundColor: "transparent", // Background color for footer
+                    },
+                    // Style for footer cells
+                    "& .MuiDataGrid-footerCell": {
+                      color: "#fff", // Text color for footer cells
+                    },
+                    // Style for toolbar container
+                    "& .MuiDataGrid-toolbarContainer": {
+                      backgroundColor: "transparent", // Background color for toolbar
+                    },
+                    // Style for checkbox color
+                    "& .MuiCheckbox-root": {
+                      color: "#fff", // Checkbox color
+                    },
+                    // Style for icons (like pagination and filtering icons)
+                    "& .MuiDataGrid-iconSeparator": {
+                      color: "#fff", // Color for separator icon
+                    },
+                    "& .MuiDataGrid-iconButton": {
+                      color: "#fff", // Color for icon buttons (e.g., pagination controls)
+                    },
+                    // Style for pagination controls
+                    "& .MuiPaginationItem-root": {
+                      color: "#fff", // Color for pagination item text
+                    },
+                  }}
+                />
+              </Suspense>
+            </div>
+
+            {/* Invoice Modal */}
+            <InvoiceModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+            />
+            {/* Pay Modal */}
+            <DuePayModal
+              isOpen={isPayModalOpen}
+              onClose={() => setIsPayModalOpen(false)}
+              saleDetails={selectedSale}
+              onCreate={handlePaymentSubmission}
+            />
+          </>
+        )}
+      </div>
     </MainLayout>
   );
 };

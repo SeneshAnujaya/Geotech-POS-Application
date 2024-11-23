@@ -1,10 +1,8 @@
-
-
 const PrintBill = ({ cartItems, subtotal, total }) => {
   return (
     <div className="invoice">
-        <h1>Invoice</h1>
-        <table>
+      <h1>Invoice</h1>
+      <table>
         <thead>
           <tr>
             <th>Product</th>
@@ -19,7 +17,10 @@ const PrintBill = ({ cartItems, subtotal, total }) => {
               <td>{item.name}</td>
               <td>LKR {parseFloat(item.retailPrice).toFixed(2)}</td>
               <td>{item.cartQuantity}</td>
-              <td>LKR {(item.cartQuantity * parseFloat(item.retailPrice)).toFixed(2)}</td>
+              <td>
+                LKR{" "}
+                {(item.cartQuantity * parseFloat(item.retailPrice)).toFixed(2)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -29,7 +30,7 @@ const PrintBill = ({ cartItems, subtotal, total }) => {
         <p>Total: LKR {total}</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PrintBill
+export default PrintBill;

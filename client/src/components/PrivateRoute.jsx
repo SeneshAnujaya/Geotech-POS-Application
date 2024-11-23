@@ -9,12 +9,11 @@ const PrivateRoute = () => {
   const dispatch = useDispatch();
   const { initialStatus } = useSelector((state) => state.initialStatus);
 
-  // const isSetupRequired = initialStatus.setupRequired;
   const isSetupRequired = initialStatus?.setupRequired ?? null;
-  
+
   useEffect(() => {
     dispatch(checkSetupStatus());
-  },[])
+  }, []);
 
   if (isSetupRequired) {
     return <Navigate to="/sign-up" />;

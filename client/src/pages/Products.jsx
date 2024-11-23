@@ -30,9 +30,6 @@ const formatDate = (dateString) => {
 const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // const { products, loading, } = useSelector((state) => state.products);
-  // const [page, setPage] = useState(0);
-  // const [pageSize, setPageSize] = useState(3);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 50,
@@ -44,18 +41,18 @@ const Products = () => {
     isLoading,
   } = useFetchProductsQuery(undefined, {});
 
-  const { data: paginatedProducts = { data: [] }, refetch, isLoading: isPaginatedProductsLoading } =
-    useFetchPaginatedProductsQuery({
-      page: paginationModel.page,
-      limit: paginationModel.pageSize,
-    });
+  const {
+    data: paginatedProducts = { data: [] },
+    refetch,
+    isLoading: isPaginatedProductsLoading,
+  } = useFetchPaginatedProductsQuery({
+    page: paginationModel.page,
+    limit: paginationModel.pageSize,
+  });
 
   useEffect(() => {
     refetch();
   }, [paginationModel, refetch]);
-
-  // const handlePageChange = (newPage) => setPage(newPage);
-  // const handlePageSizeChange = (newPageSize) => setPageSize(newPageSize);
 
   const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
 
@@ -145,16 +142,6 @@ const Products = () => {
 
   const handleCreateProduct = async (formData) => {
     try {
-      // const res = await axios.post(
-      //   "http://localhost:3000/api/products/add",
-      //   formData,
-      //   {
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     withCredentials: true,
-      //   }
-      // );
       const response = await createProduct(formData).unwrap();
 
       if (!response.success) {
@@ -229,7 +216,7 @@ const Products = () => {
           <>
             <div
               style={{ width: "100%", maxWidth: "fit-content" }}
-              className="mt-8"
+              className="mt-8 h-[680px]"
             >
               <Suspense fallback={<CircularProgress color="primary" />}>
                 <DataTable
@@ -240,13 +227,9 @@ const Products = () => {
                   deleteRow={deleteproduct}
                   updateRow={updateProduct}
                   pagination={true}
-                  // page={page}
-                  // pageSize={pageSize}
                   paginationModel={paginationModel}
                   setPaginationModel={setPaginationModel}
                   rowCount={paginatedProducts.total || 0}
-                  // handlePageChange={handlePageChange}
-                  // handlePageSizeChange={handlePageSizeChange}
                   loading={isPaginatedProductsLoading}
                 />
               </Suspense>

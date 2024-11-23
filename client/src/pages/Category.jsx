@@ -7,7 +7,7 @@ import {
   GridRowEditStopReasons,
   GridRowModes,
 } from "@mui/x-data-grid";
-import { useDispatch, useSelector } from "react-redux";
+import {  useSelector } from "react-redux";
 import { fetchCategories } from "../redux/categories/categorySlice";
 import {
   EditIcon,
@@ -22,14 +22,15 @@ import {
   showSuccessToast,
 } from "../components/ToastNotification";
 import axios from "axios";
-import {
-  useFetchCategoriesQuery,
-} from "../redux/apiSlice";
+import { useFetchCategoriesQuery } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
-import { useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation } from "../redux/apiSlice";
+import {
+  useCreateCategoryMutation,
+  useDeleteCategoryMutation,
+  useUpdateCategoryMutation,
+} from "../redux/apiSlice";
 
 const apiUrl = import.meta.env.VITE_API_URL;
-
 
 const Category = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,15 +48,16 @@ const Category = () => {
     isLoading,
   } = useFetchCategoriesQuery(undefined, {
     // refetchOnMountOrArgChange: true,
-  });  
-  
+  });
 
   const [createCategory, { isLoading: isCreating }] =
     useCreateCategoryMutation();
 
-  const [deleteCategory, {isLoading: isDeleting }] = useDeleteCategoryMutation();
+  const [deleteCategory, { isLoading: isDeleting }] =
+    useDeleteCategoryMutation();
 
-  const [updateCategory, {isLoading: isUpdating}] = useUpdateCategoryMutation();
+  const [updateCategory, { isLoading: isUpdating }] =
+    useUpdateCategoryMutation();
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -81,11 +83,12 @@ const Category = () => {
         col3: category.name,
         col4: new Date(category.createdAt).toLocaleString(),
       }));
-      setRows(updatedRows);
+      // setRows(updatedRows);
+      if (JSON.stringify(rows) !== JSON.stringify(updatedRows)) {
+        setRows(updatedRows);
+      }
     }
-  }, [categories.data]);
-
-
+  }, [categories]);
 
   const columns = [
     { field: "col1", headerName: "Id", width: 100, editable: false },
@@ -180,25 +183,7 @@ const Category = () => {
     formDataObj.append("categoryPic", formData.categoryPic);
 
     try {
-      // const res = await axios.post(
-      //   "http://localhost:3000/api/category/add",
-      //   formDataObj,
-      //   {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //     },
-      //     withCredentials: true,
-      //     onUploadProgress: (progressEvent) => {
-      //       const percentage = Math.round(
-      //         (progressEvent.loaded * 100) / progressEvent.total
-      //       );
-      //       setUploadPercentage(percentage);
-      //     },
-      //   }
-      // );
       const response = await createCategory(formDataObj).unwrap();
-      
-      
 
       showSuccessToast("Category created successfully!");
       setUploadPercentage(0);
@@ -219,21 +204,11 @@ const Category = () => {
   const handleDeleteClick = async (id) => {
     try {
       const response = await deleteCategory(id).unwrap();
-      // const res = await axios.delete(
-      //   `http://localhost:3000/api/category/deleteCategory/${id}`,
-      //   {
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     withCredentials: true,
-      //   }
-      // );
 
       showSuccessToast("Category deleted successfully!");
-      // dispatch(fetchCategories());
     } catch (error) {
       if (error.data) {
-        showErrorToast(error.data.message || 'An unexpected error occurred');
+        showErrorToast(error.data.message || "An unexpected error occurred");
       } else {
         showErrorToast("An unexpected error occurred");
       }
@@ -283,17 +258,7 @@ const Category = () => {
     const { id, col3 } = updatedRow;
 
     try {
-      const response = await updateCategory({id, name: col3}).unwrap();
-      // const res = await axios.put(
-      //   `http://localhost:3000/api/category/updateCategory/${id}`,
-      //   { name: col3 },
-      //   {
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     withCredentials: true,
-      //   }
-      // );
+      const response = await updateCategory({ id, name: col3 }).unwrap();
 
       if (response.success) {
         showSuccessToast("Category updated successfully!");
@@ -302,7 +267,7 @@ const Category = () => {
       }
     } catch (error) {
       if (error.data) {
-        showErrorToast(error.data.message || 'An unexpected error occurred');
+        showErrorToast(error.data.message || "An unexpected error occurred");
       } else {
         showErrorToast("An unexpected error occurred");
       }
@@ -329,9 +294,7 @@ const Category = () => {
     </Box>
   );
 
-  if (error || !categories) { 
-    console.log(categories);
-       
+  if (error || !categories) {
     return (
       <MainLayout>
         <div className=" text-red-700 py-4 px-4">Failed to get categories</div>
@@ -363,7 +326,7 @@ const Category = () => {
             <>
               <div
                 style={{ width: "100%", maxWidth: "fit-content" }}
-                className="mt-8"
+                className="mt-8 h-[680px]"
               >
                 <Suspense fallback={<CircularProgress color="primary" />}>
                   <DataGrid
@@ -381,10 +344,6 @@ const Category = () => {
                     }}
                     className="rounded-lg border !border-gray-400 !text-gray-200"
                     sx={{
-                      // Style for cells
-                      // "& .MuiDataGrid-cell": {
-                      //   color: "#fff", // Text color for cells
-                      // },
                       // Style for column headers
                       "& .MuiDataGrid-columnHeaders": {
                         backgroundColor: "transparent", // Background color for header

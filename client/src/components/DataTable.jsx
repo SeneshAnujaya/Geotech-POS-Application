@@ -13,7 +13,7 @@ const DataTable = ({
   role,
   deleteRow,
   updateRow,
-  pagination = false,
+  pagination,
   // page,
   // pageSize,
   rowCount,
@@ -21,33 +21,15 @@ const DataTable = ({
   // handlePageSizeChange
   paginationModel,
   setPaginationModel,
-  loading
+  loading,
 }) => {
   const [rowModesModel, setRowModesModel] = useState({});
   const [dataRows, setDataRows] = useState(rows);
-  
-
-  // paginated data use states
-  // const [page, setPage] = useState(1);
-  // const [pageSize, setPageSize] = useState(3);
-  // const [rowCount, setRowCount] = useState(rows?.length || 0);
-  
-
-  // const { data: paginatedProducts = { data: [] }, isError  } =
-  // useFetchPaginatedProductsQuery({page, pageSize});
-  
 
   useEffect(() => {
     setDataRows(rows);
     // setRowCount(rows?.length || 0);
   }, [rows]);
-
-  // useEffect(() => {
-  //   if (pagination) {
-  //       // setRowCount(paginatedProducts.total || 0);
-  //     };
-  // }, [page, pageSize, pagination]);
-
 
   const handleEditClick = (id) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
@@ -62,12 +44,6 @@ const DataTable = ({
   const handleDeleteClick = (id) => async () => {
     try {
       const res = await deleteRow(id).unwrap();
-      // const res = await axios.delete(`${apiEndpoints.delete}/${id}`, {
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   withCredentials: true,
-      // });
 
       if (res.success == true) {
         showSuccessToast("Row deleted successfully!");
@@ -127,16 +103,6 @@ const DataTable = ({
     const { id } = updatedRow;
 
     try {
-      // const res = await axios.put(
-      //   `${apiEndpoints.update}/${id}`,
-      //   updatedData,
-      //   {
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     withCredentials: true,
-      //   }
-      // );
       const res = await updateRow({ id, updatedData }).unwrap();
 
       if (res.success) {
@@ -216,7 +182,7 @@ const DataTable = ({
       paginationModel={paginationModel}
       onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
       loading={loading}
-  
+
       // pageSizeOptions={[1,3,5]}
     />
   );
