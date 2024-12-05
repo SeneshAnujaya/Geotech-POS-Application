@@ -17,30 +17,18 @@ import initialSetupRouter from './routes/initialsetupRoute.js';
 dotenv.config();
 
 const app = express();
+app.use(cookieParser());
+
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true, // Allow cookies
+  }));
 
 app.use(express.json());
-app.use(cookieParser());
+
 app.use('/uploads', express.static('uploads'));
 app.use(express.urlencoded({ extended: true }));
 
-const corsOptions = {
-   
-    
-    origin: [
-        process.env.FRONTEND_URL,
-        'https://geotech-pos-client.vercel.app', // Production Frontend URL
-        'http://localhost:3001' 
-    ],
-    allowedHeaders: [
-        "Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", 
-        "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "X-CSRF-Token"
-    ], 
-    credentials: true, 
-  };
-
-  app.use(cors(corsOptions));
-  // This will handle the OPTIONS preflight request
-app.options('*', cors(corsOptions));  // Allow CORS for all routes
 
 
 // ROUTES

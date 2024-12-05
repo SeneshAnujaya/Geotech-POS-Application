@@ -182,8 +182,11 @@ const DataTable = ({
       paginationModel={paginationModel}
       onPaginationModelChange={(newModel) => setPaginationModel(newModel)}
       loading={loading}
-
-      // pageSizeOptions={[1,3,5]}
+      sx={{
+        "& .MuiDataGrid-columnHeaders": {
+          backgroundColor: "#0f172a",
+        },
+      }}
     />
   );
 };

@@ -6,16 +6,16 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useEffect, useMemo, useState } from "react";
 import { fetchSales } from "../redux/sales/saleSlice";
 import { DataGrid } from "@mui/x-data-grid";
 import axios from "axios";
 import { useFetchSalesQuery } from "../redux/apiSlice";
+import { formatDateTime } from "../dateUtil";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -92,7 +92,7 @@ const Dashboard = () => {
     }));
 
   const columns = [
-    { field: "col1", headerName: "Sale Id", width: 150 },
+    { field: "col1", headerName: "Invoice Number", width: 150 },
     { field: "col2", headerName: "Customer", width: 130 },
     { field: "col3", headerName: "Total", width: 90 },
     { field: "col4", headerName: "Paid", width: 90 },
@@ -127,7 +127,7 @@ const Dashboard = () => {
       type: "date",
       valueFormatter: (params) => {
         const date = params;
-        return date ? date.toLocaleString() : "N/A";
+        return date ? formatDateTime(date) : "N/A";
       },
     },
   ];
@@ -282,7 +282,7 @@ const Dashboard = () => {
               />
             </div>
           </div>
-          <div className="w-full sm:flex-1 h-full  border-slate-700 rounded-md border py-4 px-6">
+          <div className="w-full sm:flex-1 h-full  border-slate-700 rounded-md border py-4 px-6 overflow-hidden">
             <h3 className="text-lg font-medium text-slate-200">Performance</h3>
             <ResponsiveContainer
               width="100%"

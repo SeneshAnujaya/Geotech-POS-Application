@@ -10,6 +10,7 @@ import {
   useFetchSalesQuery,
 } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
+import { formatDateTime } from "../dateUtil";
 
 const Sales = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,6 +35,7 @@ const Sales = () => {
     limit: paginationModel.pageSize,
   });  
 
+
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ const Sales = () => {
       col7: sale.paidAmount,
       col8: sale.paymentStatus,
       col9: sale.user?.name || sale.cashierName || "N/A",
-      col10: new Date(sale.createdAt).toLocaleString(),
+      col10: formatDateTime(sale.createdAt),
     }));
 
   const columns = [

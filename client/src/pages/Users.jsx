@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import MainLayout from "../components/MainLayout";
 import { Suspense, useState } from "react";
-import axios from "axios";
 import {
   showErrorToast,
   showSuccessToast,
@@ -18,6 +17,7 @@ import {
   useUpdateUserMutation,
 } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
+import { formatDateTime } from "../dateUtil";
 
 const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,12 +54,12 @@ const Users = () => {
     col2: user.name,
     col3: user.email,
     col4: user.role,
-    col5: new Date(user.createdAt).toLocaleString(),
-    col6: new Date(user.updatedAt).toLocaleString(),
+    col5: formatDateTime(user.createdAt),
+    col6: formatDateTime(user.updatedAt),
   }));
 
   const columns = [
-    { field: "col1", headerName: "Id", width: 100, editable: false },
+    // { field: "col1", headerName: "Id", width: 100, editable: false },
     {
       field: "col2",
       headerName: "Name",
@@ -89,10 +89,6 @@ const Users = () => {
     },
   ];
 
-  // const tableApiEndpoints = {
-  //   delete: "http://localhost:3000/api/user/deleteuser",
-  //   update: "http://localhost:3000/api/user/updateuser",
-  // };
 
   const handleCreateUser = async (formData) => {
     try {
@@ -164,7 +160,6 @@ const Users = () => {
                   <DataTable
                     rows={rows}
                     columns={columns}
-                    // apiEndpoints={tableApiEndpoints}
                     role={role}
                     deleteRow={deleteUser}
                     updateRow={updateuser}

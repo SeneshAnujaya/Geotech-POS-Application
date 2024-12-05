@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import MainLayout from "../components/MainLayout";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories } from "../redux/categories/categorySlice";
-import { fetchProducts } from "../redux/products/productsSlice";
 import {
   addItemToCart,
   increaseItemQuantity,
@@ -34,13 +32,15 @@ import SaleconfirmModal from "../components/SaleconfirmModal";
 import {
   useFetchCategoriesQuery,
   useFetchFilteredPaginatedProductsQuery,
+  useFetchPaginatedSalesQuery,
   useFetchProductsQuery,
   useFetchSalesQuery,
   useFetchWholesaleClientsQuery,
 } from "../redux/apiSlice";
 import Pagination from "../components/Pagination";
+import PlaceholderImage from "../assets/place-holder-img.jpeg";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,9 +70,7 @@ const Orders = () => {
     category: selectedCategory?.name,
     search: debouncedSearchTerm,
     limit: limit,
-  },
-
-);
+  });
 
   const productList = products?.products || [];
 
@@ -81,12 +79,14 @@ const Orders = () => {
 
   const { refetch: refetchSales } = useFetchSalesQuery(undefined, {});
 
-  const { refetch: refetchWholesaleClients } = useFetchWholesaleClientsQuery(
-    undefined,
-    {
-      // refetchOnMountOrArgChange: true
-    }
-  );
+  const { refetch: refetchWholesaleClients } = useFetchWholesaleClientsQuery({
+    // refetchOnMountOrArgChange: true
+  });
+
+  const { refetch: refetchPaginatedSales } = useFetchPaginatedSalesQuery({
+    page: 0,
+    limit: 50,
+  });
 
   const { cartItems } = useSelector((state) => state.cart);
 
@@ -103,8 +103,8 @@ const Orders = () => {
     }, 500);
     return () => {
       clearTimeout(timer);
-    }
-  },[searchTerm]);
+    };
+  }, [searchTerm]);
 
   // Cart functionalities
   const handleAddToCart = (product) => {
@@ -233,6 +233,7 @@ const Orders = () => {
         refetch();
         refetchSales();
         refetchWholesaleClients();
+        refetchPaginatedSales();
       } else {
         showErrorToast("Failed to update stock!");
       }
@@ -251,25 +252,62 @@ const Orders = () => {
             <div className=" items-center mb-6">
               <h1 className="text-xl md:text-3xl font-semibold">Orders</h1>
             </div>
-            {/* Search bar side */}
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Search via SKU Name Brand."
-                className="w-full pl-10 pr-4 py-2 w-50 md:w-80 border border-slate-600 bg-slate-800 rounded-lg focus:outline-none focus:border-blue-500 "
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(0);
-                }}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 pt-3 flex  pointer-events-none">
-                <Search className="text-gray-500" size={20} />
+            <div className="price-switch flex items-center justify-start gap-6">
+              {/* price switch */}
+              <div className="mt-2.5 mb-3 flex gap-4 items-center">
+                <label
+                  className={`text-slate-300 text-[0.8rem] border py-1 px-2 rounded-full border-slate-500 cursor-pointer ${
+                    !isBulkBuyer
+                      ? "bg-blue-800 !border-blue-800"
+                      : "bg-transparent"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="regular"
+                    checked={!isBulkBuyer}
+                    className="appearance-none h-3 w-3 rounded-full border border-gray-300 checked:bg-green-500 checked:border-transparent focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-green-500 mr-2 cursor-pointer"
+                    onChange={handleBuyerTypeChange}
+                  />
+                  Regular
+                </label>
+                <label
+                  className={`text-slate-300 text-[0.8rem] border py-1 px-2 rounded-full border-slate-500 cursor-pointer ${
+                    isBulkBuyer
+                      ? "bg-blue-800 !border-blue-800"
+                      : "bg-transparent"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="wholesale"
+                    checked={isBulkBuyer}
+                    className="appearance-none h-3 w-3 rounded-full border border-gray-300 checked:bg-green-500 checked:border-transparent focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-green-500 mr-2 cursor-pointer"
+                    onChange={handleBuyerTypeChange}
+                  />
+                  Wholesale
+                </label>
+              </div>
+              {/* Search bar side */}
+              <div className="relative">
+                <input
+                  type="search"
+                  placeholder="Search via SKU Name Brand."
+                  className="w-full pl-10 pr-4 py-2 w-50 md:w-80 border border-slate-600 bg-slate-800 rounded-lg focus:outline-none focus:border-blue-500 "
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(0);
+                  }}
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 pt-3 flex  pointer-events-none">
+                  <Search className="text-gray-500" size={20} />
+                </div>
               </div>
             </div>
           </div>
           {/* Bottom list wrap */}
           <div className="">
-            <h4 className="text-base font-normal text-slate-300 mt-2">
+            <h4 className="text-base font-normal text-slate-300">
               {/* Product Items {filteredProducts.length} */}
               Product Items {productList.length}
             </h4>
@@ -293,7 +331,7 @@ const Orders = () => {
                 categories.data.map((category) => (
                   <div
                     key={category.categoryId}
-                    className={`leading-none   py-2 px-3 rounded-full text-base hover:cursor-pointer ${
+                    className={`leading-none   py-2 px-3 rounded-full  text-[0.93rem] hover:cursor-pointer ${
                       selectedCategory &&
                       selectedCategory.categoryId === category.categoryId
                         ? "bg-blue-600"
@@ -318,12 +356,17 @@ const Orders = () => {
                 productList.map((product) => (
                   <div
                     key={product.sku}
-                    className="border bg-slate-900 border-slate-700 rounded-md p-4 w-full max-w-56 flex flex-col justify-between h-[295px]"
+                    className="border bg-slate-900 border-slate-700 rounded-md p-4 w-full max-w-56 flex flex-col justify-between h-[310px]"
                   >
                     <img
-                      src={`http://localhost:3001/uploads/${product.category.categoryPic}`}
+                      src={
+                        product.category.categoryPic
+                          ? `${apiUrl}/uploads/${product.category.categoryPic}`
+                          : PlaceholderImage
+                      }
+                      // src={`${apiUrl}/uploads/${product.category.categoryPic}`}
                       alt="product-pic"
-                      className="w-100 h-100 rounded h-32 object-cover"
+                      className="w-full   rounded h-[120px] object-cover"
                     />
                     <h4 className="font-medium text-[0.95rem] mt-2 leading-5">
                       {product.name}
@@ -333,7 +376,11 @@ const Orders = () => {
                         {product.category.name}
                       </p>
                       <p className="text-slate-300 text-[0.95rem]">
-                        LKR {parseFloat(product.retailPrice).toFixed(2)}
+                        {/* LKR {parseFloat(product.retailPrice).toFixed(2)} */}
+                        LKR
+                        {isBulkBuyer
+                          ? parseFloat(product.wholesalePrice).toFixed(2)
+                          : parseFloat(product.retailPrice).toFixed(2)}
                       </p>
                     </div>
                     <div className="flex mt-6 justify-between">
@@ -355,7 +402,11 @@ const Orders = () => {
 
                       <p
                         className={`leading-none text-[0.8rem] font-normal  flex items-center text-white bg-green-700 px-2 rounded-full ${
-                          product.quantity > 0 ? "bg-green-700" : "bg-red-800"
+                          product.quantity === 0
+                            ? "bg-red-700"
+                            : product.quantity < 5
+                            ? "bg-orange-600"
+                            : "bg-green-700"
                         }`}
                       >
                         {product.quantity} Stock
@@ -433,7 +484,7 @@ const Orders = () => {
             </div>
 
             {/* cart product item */}
-            <div className="h-[320px] overflow-auto">
+            <div className="h-[500px] overflow-auto mt-3 custom-scrollbar">
               {cartItems.map((item) => (
                 <div
                   className="border mt-4 border-slate-700 rounded-md bg-slate-900 p-2 w-full"
@@ -505,32 +556,6 @@ const Orders = () => {
           </div>
           {/* Payement summary */}
           <div className="border mt-4  border-slate-700 rounded-md bg-slate-900 p-4">
-            {/* Customer Type  */}
-            <p className="text-[0.95rem] text-slate-200 font-semibold">
-              Customer Type
-            </p>
-            <div className="mt-2.5 mb-3 flex gap-4 items-center">
-              <label className="text-slate-300 text-[0.9rem]">
-                <input
-                  type="radio"
-                  value="regular"
-                  checked={!isBulkBuyer}
-                  className="appearance-none h-3 w-3 rounded-full border border-gray-300 checked:bg-blue-500 checked:border-transparent focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-blue-500 mr-2 cursor-pointer"
-                  onChange={handleBuyerTypeChange}
-                />
-                Regular
-              </label>
-              <label className="text-slate-300 text-[0.9rem]">
-                <input
-                  type="radio"
-                  value="wholesale"
-                  checked={isBulkBuyer}
-                  className="appearance-none h-3 w-3 rounded-full border border-gray-300 checked:bg-blue-500 checked:border-transparent focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-blue-500 mr-2 cursor-pointer"
-                  onChange={handleBuyerTypeChange}
-                />
-                Wholesale
-              </label>
-            </div>
             <p className="text-[0.95rem] text-slate-200 font-semibold">
               Payment Summary
             </p>

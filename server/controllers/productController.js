@@ -238,7 +238,7 @@ export const updateProduct = async (req, res) => {
     col5: wholesalePrice,
     col6: quantity,
     col7: brandName,
-    col8: warrantyPeriod,
+    col9: warrantyPeriod,
   } = req.body;
 
   if (!sku) {

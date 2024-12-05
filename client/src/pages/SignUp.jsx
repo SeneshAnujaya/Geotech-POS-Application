@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import logo from "../assets/geotech-logo.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {

@@ -102,7 +102,7 @@ const apiSlice = createApi({
         }),
 
         fetchPaginatedSales: builder.query({
-            query: ({page = 0, limit = 3}) => `/sales/getpaginationSales?page=${page}&limit=${limit}`,
+            query: ({page = 0, limit = 50}) => `/sales/getpaginationSales?page=${page}&limit=${limit}`,
             providesTags: ['Sales']
         }),
 
@@ -173,13 +173,6 @@ const apiSlice = createApi({
             }),
             invalidatesTags: ['Users']
         }),
-
-        // // Initial Setup Endpoints
-        // checkSetupStatus: builder.query({
-        //     query: () => ({
-        //         url: '/initialsetup/check-setup',
-        //     })
-        //   }),
         
     })
 });

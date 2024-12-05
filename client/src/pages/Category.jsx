@@ -29,8 +29,10 @@ import {
   useDeleteCategoryMutation,
   useUpdateCategoryMutation,
 } from "../redux/apiSlice";
+import PlaceholderImage from '../assets/place-holder-img.jpeg';
+import { formatDateTime } from "../dateUtil";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Category = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,6 +76,9 @@ const Category = () => {
     return () => clearTimeout(loaderTimer);
   }, [isLoading]);
 
+
+  
+
   useEffect(() => {
     if (categories.data) {
       const updatedRows = categories.data.map((category) => ({
@@ -81,7 +86,7 @@ const Category = () => {
         col1: category.categoryId,
         col2: category.categoryPic,
         col3: category.name,
-        col4: new Date(category.createdAt).toLocaleString(),
+        col4: formatDateTime(category.createdAt),
       }));
       // setRows(updatedRows);
       if (JSON.stringify(rows) !== JSON.stringify(updatedRows)) {
@@ -91,7 +96,7 @@ const Category = () => {
   }, [categories]);
 
   const columns = [
-    { field: "col1", headerName: "Id", width: 100, editable: false },
+    // { field: "col1", headerName: "Id", width: 100, editable: false },
     {
       field: "col2",
       headerName: "Image",
@@ -99,7 +104,7 @@ const Category = () => {
       renderCell: (params) => (
         <div className="py-3">
           <img
-            src={`http://localhost:3001/uploads/${params.value}`}
+            src={params.value ? `${apiUrl}/uploads/${params.value}` : PlaceholderImage}
             alt="category-pic"
             style={{
               width: "50px",

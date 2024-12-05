@@ -17,7 +17,8 @@ const rootReducer = combineReducers({user: userReducer, uisetting: uiSettingRedu
 const persistConfig = {
     key: 'root',
     storage,
-    version: 1
+    version: 1,
+    blacklist: [apiSlice.reducerPath],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

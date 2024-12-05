@@ -18,14 +18,11 @@ import {
   useFetchPaginatedProductsQuery,
 } from "../redux/apiSlice";
 import { CircularProgress, Box, Skeleton } from "@mui/material";
+import { formatDateTime } from "../dateUtil";
 
 const DataTable = lazy(() => import("../components/DataTable"));
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const options = { day: "numeric", month: "long", year: "numeric" };
-  return date.toLocaleDateString("en-GB", options);
-};
+
 
 const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,7 +82,7 @@ const Products = () => {
     col7: product.brandName,
     col8: product.category.name,
     col9: product.warrantyPeriod,
-    col10: formatDate(product.createdAt),
+    col10: formatDateTime(product.createdAt),
   }));
 
   const columns = [
@@ -96,12 +93,16 @@ const Products = () => {
       width: 180,
       editable: (params) => params.row.id === editableRowId,
     },
-    {
-      field: "col3",
-      headerName: "Cost Price - LKR",
-      width: 130,
-      editable: (params) => params.row.id === editableRowId,
-    },
+    ...(role === "ADMIN"
+      ? [
+          {
+            field: "col3",
+            headerName: "Cost Price - LKR",
+            width: 130,
+            editable: (params) => params.row.id === editableRowId,
+          },
+        ]
+      : []),
     {
       field: "col4",
       headerName: "Retail Price - LKR",
@@ -119,6 +120,23 @@ const Products = () => {
       headerName: "Quantity",
       width: 100,
       editable: (params) => params.row.id === editableRowId,
+      renderCell: (params) => (
+        <div className="flex items-center  h-full">
+          <button
+            variant="contained"
+            color="primary"
+            className={`bg-blue-800 flex rounded-full  h-[20px] pt-0.5 items-center px-3 text-[12px] font-medium leading-none ${
+              params.value === 0
+                ? "bg-red-700"
+                : params.value < 5
+                ? "bg-orange-600"
+                : "bg-blue-800"
+            }`}
+          >
+            {params.value}
+          </button>
+        </div>
+      ),
     },
     {
       field: "col7",
@@ -136,7 +154,7 @@ const Products = () => {
     {
       field: "col10",
       headerName: "Created At",
-      width: 200,
+      width: 180,
     },
   ];
 
@@ -162,10 +180,6 @@ const Products = () => {
     }
   };
 
-  // const tableApiEndpoints = {
-  //   delete: "http://localhost:3000/api/products/delete",
-  //   update: "http://localhost:3000/api/products/updateproduct",
-  // };
 
   const renderTableSkeleton = () => (
     <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
@@ -222,7 +236,6 @@ const Products = () => {
                 <DataTable
                   rows={rows}
                   columns={columns}
-                  // apiEndpoints={tableApiEndpoints}
                   role={role}
                   deleteRow={deleteproduct}
                   updateRow={updateProduct}

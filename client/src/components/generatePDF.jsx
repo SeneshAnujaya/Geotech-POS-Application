@@ -35,12 +35,13 @@ const generatePDF = (
   // Populate table rows with cart items
   cartItems.forEach((item) => {
     tableBody.push([
-      item.sku || "", // Handle potential undefined values
-      item.name || "",
-      item.warrantyPeriod,
-      item.cartQuantity || 0,
-      ` ${parseFloat(item.price || 0).toFixed(2)}`,
-      ` ${(item.cartQuantity * parseFloat(item.price || 0)).toFixed(2)}`,
+
+      {text:item.sku || "", style: "tableContent"}, // Handle potential undefined values
+      {text:item.name || "", style:"tableContent"},
+      {text:item.warrantyPeriod, style:"tableContent"},
+      {text:item.cartQuantity || 0, style:"tableContent"},
+      {text:` ${parseFloat(item.price || 0).toFixed(2)}`, style:"tableContent"},
+      {text:` ${(item.cartQuantity * parseFloat(item.price || 0)).toFixed(2)}`,style:"tableContent"},
     ]);
   });
 
@@ -61,7 +62,7 @@ const generatePDF = (
                 alignment: "left",
               },
               {
-                text: "No11, New Shopping Complex, Wanduramba Galle. Tele: 074 1411556",
+                text: "No11, New Shopping Complex, Wanduramba Galle. Tel: 074 1411556",
                 style: "subheader",
                 alignment: "left",
               },
@@ -82,6 +83,7 @@ const generatePDF = (
                   `${currentUserName}\n`,
                 ],
                 alignment: "right",
+                style: "invoiceInfo",
               },
             ],
             alignment: "right",
@@ -93,6 +95,7 @@ const generatePDF = (
         text: `\n\nCustomer: ${billingName}`,
         style: "subheader",
         alignment: "left",
+        marginBottom: 1,
       },
       {
         text: `Telephone Number: ${phoneNumber ? phoneNumber : "N/A"}`,
@@ -107,6 +110,7 @@ const generatePDF = (
           body: tableBody,
         },
         layout: {
+         
           hLineWidth: function (i, node) {
             return i === 0 || i === node.table.body.length ? 2 : 1; // Width for horizontal lines
           },
@@ -153,23 +157,27 @@ const generatePDF = (
                 text: `\n AMOUNT: LKR ${total}`,
                 alignment: "right",
                 bold: true,
+                fontSize: 11
               },
               {
                 text: `DISCOUNT: LKR ${discount ? discount : "N/A"}`,
                 alignment: "right",
                 bold: true,
+                fontSize: 11
               },
               {
                 text: `TOTAL: LKR ${grandTotal ? grandTotal : "0"}`,
                 style: "total",
                 alignment: "right",
                 bold: true,
+                marginBottom: 4
               },
               {
                 text: `PAID: LKR ${paidAmount ? paidAmount : "0"}`,
                 style: "total",
                 alignment: "right",
                 bold: true,
+                fontSize: 11
               },
               ...(restBalance
                 ? [
@@ -177,6 +185,7 @@ const generatePDF = (
                       text: `DUE: LKR ${restBalance}`,
                       alignment: "right",
                       bold: true,
+                      fontSize: 11
                     },
                   ]
                 : []),
@@ -233,26 +242,32 @@ const generatePDF = (
     ],
     styles: {
       header: {
-        fontSize: 18,
+        fontSize: 16,
         bold: true,
         marginBottom: 4,
       },
       subheader: {
-        fontSize: 12,
+        fontSize: 11,
         alignment: "center",
         marginBottom: 4,
       },
       invoiceTitle: {
-        fontSize: 16,
+        fontSize: 14,
         bold: true,
+      },
+      invoiceInfo: {
+        fontSize: 11,
       },
       tableHeader: {
         bold: true,
-        fontSize: 10,
+        fontSize: 11,
         alignment: "center",
       },
+      tableContent: {
+        fontSize: 11
+      },
       total: {
-        fontSize: 14,
+        fontSize: 12,
         bold: true,
       },
       warranty: {
@@ -269,7 +284,7 @@ const generatePDF = (
     },
   };
 
-  pdfMake.createPdf(docDefinition).print();
+  pdfMake.createPdf(docDefinition).open();
 
   if (dispatch) {
     dispatch(clearCart());

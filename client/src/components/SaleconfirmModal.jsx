@@ -11,7 +11,6 @@ const SaleconfirmModal = ({
   isBulkBuyer,
   total,
 }) => {
-  
   const {
     data: wholesaleClients = { data: [] },
     error,
@@ -175,21 +174,25 @@ const SaleconfirmModal = ({
             </>
           )}
 
-          <label
-            htmlFor="discount"
-            className="block text-sm font-medium text-gray-300 mt-2"
-          >
-            Discount
-          </label>
-          <input
-            type="number"
-            name="discount"
-            placeholder="Enter Discount..."
-            value={formData.discount}
-            className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
-            onChange={handleChange}
-            min="0"
-          />
+          {!isBulkBuyer && (
+            <>
+              <label
+                htmlFor="discount"
+                className="block text-sm font-medium text-gray-300 mt-2"
+              >
+                Discount
+              </label>
+              <input
+                type="number"
+                name="discount"
+                placeholder="Enter Discount..."
+                value={formData.discount}
+                className="block w-full mb-2 p-2 border-gray-600 border rounded-md text-gray-900"
+                onChange={handleChange}
+                min="0"
+              />
+            </>
+          )}
 
           {isBulkBuyer && (
             <>
@@ -213,12 +216,14 @@ const SaleconfirmModal = ({
           <p className="text-[0.95rem] text-slate-200 font-semibold mt-6">
             Payment Summary
           </p>
+          {!isBulkBuyer && (
           <div className="flex justify-between items-center gap-2 mt-2">
             <p className="text-slate-300 text-[0.95rem]">Discount</p>
             <p className="text-slate-300 text-[0.95rem]">
               {formData.discount ? formData.discount : 0.0}
             </p>
           </div>
+          )}
           {isBulkBuyer && (
             <div className="flex justify-between items-center gap-2 mt-2">
               <p className="text-slate-300 text-[0.95rem]">Paid Amount</p>

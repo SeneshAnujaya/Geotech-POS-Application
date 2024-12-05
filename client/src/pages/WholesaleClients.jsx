@@ -1,7 +1,6 @@
 import React, { useEffect, Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import { useState } from "react";
-import axios from "axios";
 import {
   showErrorToast,
   showSuccessToast,
@@ -19,6 +18,7 @@ import {
   useUpdateWholesaleClientMutation,
 } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
+import { formatDateTime } from "../dateUtil";
 
 const WholesaleClients = () => {
   const [users, setusers] = useState([]);
@@ -64,11 +64,11 @@ const WholesaleClients = () => {
     col4: client.email,
     col5: client.companyName,
     col6: Number(client.outstandingBalance).toFixed(2),
-    col7: new Date(client.createdAt).toLocaleString(),
+    col7: formatDateTime((client.createdAt)),
   }));
 
   const columns = [
-    { field: "col1", headerName: "Id", width: 100, editable: false },
+    // { field: "col1", headerName: "Id", width: 100, editable: false },
     {
       field: "col2",
       headerName: "Name",
@@ -178,7 +178,6 @@ const WholesaleClients = () => {
                   <DataTable
                     rows={rows}
                     columns={columns}
-                    // apiEndpoints={tableApiEndpoints}
                     role={role}
                     deleteRow={deleteWholesaleClient}
                     updateRow={updateWholesaleClient}
