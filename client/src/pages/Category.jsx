@@ -7,13 +7,15 @@ import {
   GridRowEditStopReasons,
   GridRowModes,
 } from "@mui/x-data-grid";
-import {  useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { fetchCategories } from "../redux/categories/categorySlice";
 import {
   EditIcon,
   ExternalLinkIcon,
+  ImageUp,
   PlusCircleIcon,
   SaveIcon,
+  Search,
   Trash2,
 } from "lucide-react";
 import CategoryModal from "../components/CategoryModal";
@@ -22,15 +24,16 @@ import {
   showSuccessToast,
 } from "../components/ToastNotification";
 import axios from "axios";
-import { useFetchCategoriesQuery } from "../redux/apiSlice";
+import { useFetchCategoriesQuery, useFetchFilteredCategoriesQuery } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 import {
   useCreateCategoryMutation,
   useDeleteCategoryMutation,
   useUpdateCategoryMutation,
 } from "../redux/apiSlice";
-import PlaceholderImage from '../assets/place-holder-img.jpeg';
+import PlaceholderImage from "../assets/place-holder-img.jpeg";
 import { formatDateTime } from "../dateUtil";
+import SearchBar from "../components/SearchBar";
 
 const apiUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -43,6 +46,9 @@ const Category = () => {
   const [rows, setRows] = useState([]);
 
   const [uploadPercentage, setUploadPercentage] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState();
+
 
   const {
     data: categories = { data: [] },
@@ -51,6 +57,11 @@ const Category = () => {
   } = useFetchCategoriesQuery(undefined, {
     // refetchOnMountOrArgChange: true,
   });
+
+  const { data: filteredCategories = { data: []} } = useFetchFilteredCategoriesQuery({searchTerm: debouncedSearchTerm});
+
+
+  
 
   const [createCategory, { isLoading: isCreating }] =
     useCreateCategoryMutation();
@@ -76,12 +87,18 @@ const Category = () => {
     return () => clearTimeout(loaderTimer);
   }, [isLoading]);
 
-
-  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 600);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
-    if (categories.data) {
-      const updatedRows = categories.data.map((category) => ({
+    if (filteredCategories.data) {
+      const updatedRows = filteredCategories.data.map((category) => ({
         id: category.categoryId,
         col1: category.categoryId,
         col2: category.categoryPic,
@@ -93,7 +110,7 @@ const Category = () => {
         setRows(updatedRows);
       }
     }
-  }, [categories]);
+  }, [filteredCategories]);
 
   const columns = [
     // { field: "col1", headerName: "Id", width: 100, editable: false },
@@ -101,21 +118,46 @@ const Category = () => {
       field: "col2",
       headerName: "Image",
       width: 200,
-      renderCell: (params) => (
-        <div className="py-3">
-          <img
-            src={params.value ? `${apiUrl}/uploads/${params.value}` : PlaceholderImage}
-            alt="category-pic"
-            style={{
-              width: "50px",
-              height: "50px",
-              borderRadius: "50%",
-              objectFit: "cover",
-            }}
-          />
-        </div>
-      ),
-      // editable: (params) => params.row.id === editableRowId,
+      renderCell: (params) => {
+        return (
+          <div className="py-3 px-4">
+            <img
+              src={
+                params.value
+                  ? `${apiUrl}/uploads/${params.value}`
+                  : PlaceholderImage
+              }
+              alt="category-pic"
+              style={{
+                width: "50px",
+                height: "50px",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+          </div>
+        );
+      },
+      renderEditCell: (params) => {
+        return (
+          <div className="w-full">
+         
+            <label htmlFor="image" className=" w-full block px-6 py-6">
+            <ImageUp className="w-7 h-7"/>
+            
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImageChange(e, params.row.id)}
+              style={{ width: "150px" }}
+              id="image"
+              hidden
+            />
+            </label>
+          </div>
+        );
+      },
+      editable: (params) => params.row.id === editableRowId,
     },
     {
       field: "col3",
@@ -237,10 +279,22 @@ const Category = () => {
     const editedRow = rows.find((row) => row.id === id);
     if (editedRow.isNew) {
       setRows(rows.filter((row) => row.id !== id));
+    } else {
+      const updatedRow = {...editedRow};
+      if(updatedRow.col2File) {
+        updatedRow.col2File = null;
+      }
+
+      setRows(rows.map((row) => (row.id === id ? updatedRow : row)));
     }
+
+    // if (editedRow.col2File) {
+    //   editedRow.col2File = null;
+    // }
   };
 
   const processRowUpdate = async (newRow) => {
+   
     const updatedRow = { ...newRow, isNew: false };
     setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
 
@@ -260,10 +314,14 @@ const Category = () => {
   };
 
   const handleCategoryUpdateReq = async (updatedRow) => {
-    const { id, col3 } = updatedRow;
+    const { id, col3, col2File } = updatedRow;
 
     try {
-      const response = await updateCategory({ id, name: col3 }).unwrap();
+      const formData = new FormData();
+      formData.append("name", col3);
+      if (col2File) formData.append("categoryPic", col2File);
+
+      const response = await updateCategory({ id, data: formData }).unwrap();
 
       if (response.success) {
         showSuccessToast("Category updated successfully!");
@@ -277,6 +335,17 @@ const Category = () => {
         showErrorToast("An unexpected error occurred");
       }
     }
+  };
+
+  const handleImageChange = (e, rowId) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const updatedRows = rows.map((row) => {
+      return row.id === rowId ? { ...row, col2File: file } : row;
+    });
+
+    setRows(updatedRows);
   };
 
   // loading skeleton
@@ -299,7 +368,7 @@ const Category = () => {
     </Box>
   );
 
-  if (error || !categories) {
+  if (error || !filteredCategories) {
     return (
       <MainLayout>
         <div className=" text-red-700 py-4 px-4">Failed to get categories</div>
@@ -311,10 +380,14 @@ const Category = () => {
       {isLoading ? (
         <div className="py-4 px-4">Loading...</div>
       ) : (
-        <div className="px-0 md:px-8 py-4 flex flex-col">
+        <div className="px-0 md:px-8 py-5 flex flex-col border border-slate-700 rounded-md">
           {/* Header bar */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-2 pb-6">
             <h1 className="text-2xl font-semibold">Categories</h1>
+            <div className="flex items-center gap-5">
+            {/* search bar */}
+            <SearchBar setSearchTerm={setSearchTerm} placeholder="Search by Category Name..."/>
+           
             {role == "ADMIN" && (
               <button
                 className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
@@ -324,11 +397,12 @@ const Category = () => {
                 Add Category
               </button>
             )}
+            </div>
           </div>
           {showLoader || isLoading ? (
             renderTableSkeleton()
           ) : (
-            <>
+            <div className="border border-slate-700 rounded-md px-4">
               <div
                 style={{ width: "100%", maxWidth: "fit-content" }}
                 className="mt-8 h-[680px]"
@@ -351,7 +425,7 @@ const Category = () => {
                     sx={{
                       // Style for column headers
                       "& .MuiDataGrid-columnHeaders": {
-                        backgroundColor: "transparent", // Background color for header
+                        backgroundColor: "#0f172a", // Background color for header
                         color: "#fff", // Text color for header
                       },
                       // Style for virtual scroller (rows area)
@@ -402,7 +476,7 @@ const Category = () => {
                 onCreate={handleCreateCategory}
                 percentage={uploadPercentage}
               />
-            </>
+            </div>
           )}
         </div>
       )}

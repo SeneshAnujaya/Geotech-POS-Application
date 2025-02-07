@@ -5,7 +5,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: fetchBaseQuery({baseUrl: apiUrl, credentials: 'include',}),
-    tagTypes: ['Products', 'Sales', 'Categories', 'WholesaleClients', 'Users'],
+    tagTypes: ['Products', 'Sales', 'Categories', 'WholesaleClients', 'Users', 'Payments'],
     endpoints: (builder) => ({
 
         // Products EndPoints
@@ -15,7 +15,7 @@ const apiSlice = createApi({
         }),
 
         fetchPaginatedProducts: builder.query({
-            query: ({page = 0, limit = 20}) => `/products/getpaginationProducts?page=${page}&limit=${limit}`,
+            query: ({page = 0, limit = 20, searchTerm = ''}) => `/products/getpaginationProducts?page=${page}&limit=${limit}&searchTerm=${searchTerm}`,
             providesTags: ['Products']
         }),
 
@@ -68,6 +68,13 @@ const apiSlice = createApi({
             query: () => '/category/getCategories',
             providesTags: ['Categories']
         }),
+        fetchFilteredCategories: builder.query({
+            query: ({searchTerm = ''}) => {
+                const params = new URLSearchParams({searchTerm});
+                return `/category/getFilteredCategories?${params.toString()}`;
+            },
+            providesTags: ['Categories']
+        }),
         createCategory: builder.mutation({
             query: (formData) => ({
                 url: '/category/add',
@@ -85,11 +92,10 @@ const apiSlice = createApi({
             invalidatesTags: ['Categories']
         }),
         updateCategory: builder.mutation({
-            query: ({id, name}) => ({
+            query: ({id, data}) => ({    
                 url: `/category/updateCategory/${id}`,
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: {name}
+                body: data
             }),
             invalidatesTags: ['Categories']
         }),
@@ -102,13 +108,33 @@ const apiSlice = createApi({
         }),
 
         fetchPaginatedSales: builder.query({
-            query: ({page = 0, limit = 50}) => `/sales/getpaginationSales?page=${page}&limit=${limit}`,
+            query: ({page = 0, limit = 50, searchTerm=""}) => `/sales/getpaginationSales?page=${page}&limit=${limit}&searchTerm=${searchTerm}`,
             providesTags: ['Sales']
+        }),
+
+        fetchDueSales: builder.query({
+            query: ({searchTerm = ""}) => `/sales/getDueSales?searchTerm=${searchTerm}`,
+            porvidesTags: ['Sales']
+        }),
+
+        fetchReturnCancelSales: builder.query({
+            query: ({searchTerm}) => `/sales/getReturnCancel?searchTerm=${searchTerm}`,
+            providesTags: ['Sales']
+        }),
+
+        cancelSaleRecord: builder.mutation({
+            query: (formData) => ({
+                url: `/sales/cancelSale`,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: formData
+            }),
+            invalidatesTags: ['Sales']
         }),
 
         // Wholesale clients Endpoints
         fetchWholesaleClients: builder.query({
-            query: () => '/wholesaleClient/getBulkBuyers',
+            query: ({searchTerm = ""}) => `/wholesaleClient/getBulkBuyers?searchTerm=${searchTerm}`,
             providesTags: ['WholesaleClients']
         }),
         createWholesaleClient: builder.mutation({
@@ -173,9 +199,27 @@ const apiSlice = createApi({
             }),
             invalidatesTags: ['Users']
         }),
+
+        updateUserAccount: builder.mutation({
+            query: (updatedData) => ({
+                url: `/user/updateUserAccount/`,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: updatedData
+            }),
+            invalidatesTags: ['Users']
+        }),
+        
+
+        // Paymetns Endpoints
+        fetchSingleClientPayments: builder.query({
+            query: (id) => `payment/getPayments/${id}`,
+            providesTags: ['Payments']
+            
+        }),
         
     })
 });
 
-export const {useFetchProductsQuery, useFetchPaginatedProductsQuery, useFetchFilteredPaginatedProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation, useFetchCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchPaginatedSalesQuery, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation, useCheckSetupStatusQuery} = apiSlice;
+export const {useFetchProductsQuery, useFetchPaginatedProductsQuery, useFetchFilteredPaginatedProductsQuery, useCreateProductMutation, useDeleteProductMutation, useUpdateProductMutation, useFetchCategoriesQuery, useFetchFilteredCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation, useFetchSalesQuery, useFetchPaginatedSalesQuery, useFetchDueSalesQuery, useFetchReturnCancelSalesQuery, useCancelSaleRecordMutation, useFetchWholesaleClientsQuery, useCreateWholesaleClientMutation, useDeleteWholesaleClientMutation, useUpdateWholesaleClientMutation, useFetchUsersQuery, useCreateUserMutation, useDeleteUserMutation, useUpdateUserMutation, useUpdateUserAccountMutation, useCheckSetupStatusQuery, useFetchSingleClientPaymentsQuery} = apiSlice;
 export default apiSlice;

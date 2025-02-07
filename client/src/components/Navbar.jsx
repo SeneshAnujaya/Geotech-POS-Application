@@ -49,6 +49,7 @@ const Navbar = () => {
                     <span className='absolute -top-2 -right-2 inline-flex items-center justify-center px-[0.4rem] py-1 text-xs font-semibold leading-none text-red-100 bg-red-500 rounded-full'>4</span>
                 </div> */}
           {/* <hr  className='w-0 h-7 border border-solid border-1 border-gray-600 mx-3'/> */}
+          <Link to="/profile">
           <div className="flex items-center gap-3 cursor-pointer">
             <div className="w-fit">
               <img
@@ -71,8 +72,9 @@ const Navbar = () => {
               </p>
             </div>
           </div>
+          </Link>
         </div>
-        <Link to="/">
+        <Link to="/profile">
           <Settings className="cursor-pointer text-gray-300" size={24} />
         </Link>
       </div>

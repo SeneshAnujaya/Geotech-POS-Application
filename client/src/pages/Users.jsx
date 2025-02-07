@@ -47,8 +47,10 @@ const Users = () => {
     return () => clearTimeout(loaderTimer);
   }, [isLoading]);
 
+  const filterusers = users.data.filter((user) => user.role !== "ADMIN");
+
   // DATA GRID ROWS COLUMNS
-  const rows = users.data.map((user) => ({
+  const rows = filterusers.map((user) => ({
     id: user.id,
     col1: user.id,
     col2: user.name,

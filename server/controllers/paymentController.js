@@ -4,56 +4,81 @@ import { errorHandler } from "../utils/error.js";
 
 const prisma = new PrismaClient();
 
-export const createPayment = async (req, res) => {
+const generateNextReceiptNumber = async () => {
+  const latestPayment = await prisma.payment.findFirst({
+    orderBy: { receiptNumber: "desc" },
+  });
 
-  const saleId = req.body.saleId;
+  let nextReceiptNumber = "REC-0000001";
+
+  if (latestPayment && latestPayment.receiptNumber) {
+    const currentNumber = parseInt(latestPayment.receiptNumber.split("-")[1]);
+    const incrementedNumber = currentNumber + 1;
+
+    nextReceiptNumber = `REC-${String(incrementedNumber).padStart(6, "0")}`;
+  }
+
+  return nextReceiptNumber;
+};
+
+export const createPayment = async (req, res) => {
+  // const saleId = req.body.saleId;
   const payAmount = Number(req.body.payAmount);
   const bulkBuyerId = req.body.bulkBuyerId ? req.body.bulkBuyerId : null;
 
-  console.log(bulkBuyerId);
-  
+  const receiptNumber = await generateNextReceiptNumber();
 
   try {
-    const payment = await prisma.payment.create({
-      data: {
-        saleId: saleId,
-        paymentAmount: payAmount,
-        bulkBuyerId: bulkBuyerId,
-      }
-    });
-    
-    const sale = await prisma.sale.findUnique({
-      where: {saleId : saleId } });
-
-      const updatedPaidAmount = Number(sale.paidAmount) + payAmount;
-      const updatedTotalBalance = Number(sale.totalAmount) - Number(sale.discount);
-      const updatedDueBalance = updatedTotalBalance - updatedPaidAmount;
-
-      const paymentStatus = updatedDueBalance <= 0 ? "FULL PAID" : updatedPaidAmount > 0 ? "PARTIALLY_PAID" : "UNPAID";
-
-      const updatedSale = await prisma.sale.update({
-        where: {saleId: saleId},
+    const result = await prisma.$transaction(async (prisma) => {
+      const payment = await prisma.payment.create({
         data: {
-          paidAmount: updatedPaidAmount,
-          paymentStatus: paymentStatus
-        }
+          paymentAmount: payAmount,
+          bulkBuyerId: bulkBuyerId,
+          receiptNumber,
+        },
       });
 
-      if(bulkBuyerId) {
+      if (bulkBuyerId) {
         const updatedBulkBuyer = await prisma.bulkBuyer.update({
-          where: {bulkBuyerId: bulkBuyerId},
+          where: { bulkBuyerId: bulkBuyerId },
           data: {
-            outstandingBalance: {decrement: payAmount }
-          }
-        })
+            outstandingBalance: { decrement: payAmount },
+          },
+        });
       }
 
-    res.status(201).json({ success: true, message: "Payment added & sale record update successfully! ", payment});
+      return payment;
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Payment added & sale record update successfully! ",
+      payment: result,
+    });
   } catch (error) {
     console.error("Error processing payment:", error);
-    res.status(500).json({success: false, message: "payment & sale record update failed!"})
+    res.status(500).json({
+      success: false,
+      message: "payment & sale record update failed!",
+    });
   }
-}
+};
 
+// get payements for register member
+export const getSingleClientPayments = async (req, res) => {
+  const { id } = req.params;
 
+  try {
+    const clientPayments = await prisma.payment.findMany({
+      where: {
+        bulkBuyerId: id,
+      },
+    });
 
+    res.status(200).json({ success: true, data: clientPayments });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching client payments" });
+  }
+};

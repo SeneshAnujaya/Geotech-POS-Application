@@ -2,7 +2,6 @@ import { useEffect, useState, Suspense, lazy } from "react";
 import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "../redux/products/productsSlice";
 import { PlusCircleIcon } from "lucide-react";
 import {
   showErrorToast,
@@ -11,7 +10,6 @@ import {
 import axios from "axios";
 import ProductAddModal from "../components/ProductAddModal";
 import {
-  useFetchProductsQuery,
   useCreateProductMutation,
   useDeleteProductMutation,
   useUpdateProductMutation,
@@ -19,32 +17,31 @@ import {
 } from "../redux/apiSlice";
 import { CircularProgress, Box, Skeleton } from "@mui/material";
 import { formatDateTime } from "../dateUtil";
+import SearchBar from "../components/SearchBar";
 
 const DataTable = lazy(() => import("../components/DataTable"));
 
-
-
 const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState();
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 50,
   });
 
-  const {
-    data: products = { data: [] },
-    error,
-    isLoading,
-  } = useFetchProductsQuery(undefined, {});
+
 
   const {
     data: paginatedProducts = { data: [] },
     refetch,
     isLoading: isPaginatedProductsLoading,
+    error,
   } = useFetchPaginatedProductsQuery({
     page: paginationModel.page,
     limit: paginationModel.pageSize,
+    searchTerm: debouncedSearchTerm,
   });
 
   useEffect(() => {
@@ -65,11 +62,20 @@ const Products = () => {
   // Delay loader removal slightly to avoid flashing
   useEffect(() => {
     const loaderTimer = setTimeout(() => {
-      if (!isLoading) setShowLoader(false);
+      if (!isPaginatedProductsLoading) setShowLoader(false);
     }, 100);
 
     return () => clearTimeout(loaderTimer);
-  }, [isLoading]);
+  }, [isPaginatedProductsLoading]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 600);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
 
   const rows = paginatedProducts.data.map((product) => ({
     id: product.sku,
@@ -86,7 +92,7 @@ const Products = () => {
   }));
 
   const columns = [
-    { field: "col1", headerName: "SKU", width: 130 },
+    { field: "col1", headerName: "SKU", width: 130,  editable: (params) => params.row.id === editableRowId, },
     {
       field: "col2",
       headerName: "Name",
@@ -180,7 +186,6 @@ const Products = () => {
     }
   };
 
-
   const renderTableSkeleton = () => (
     <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
       {Array.from(new Array(4)).map((_, rowIndex) => (
@@ -200,7 +205,7 @@ const Products = () => {
     </Box>
   );
 
-  if (error || !products) {
+  if (error || !paginatedProducts) {
     return (
       <MainLayout>
         <div className=" text-red-700 py-4 px-4">Failed to get Products</div>
@@ -209,25 +214,30 @@ const Products = () => {
   }
   return (
     <MainLayout>
-      <div className="px-0 md:px-8 py-4 flex flex-col">
+      <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 border rounded-md">
         {/* Header bar */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Products</h1>
-          {role == "ADMIN" && (
-            <button
-              className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <PlusCircleIcon className="w-5 h-5 mr-2" />
-              Add Product
-            </button>
-          )}
+          <div className="flex items-center gap-5">
+            {/* search bar */}
+            <SearchBar setSearchTerm={setSearchTerm} placeholder="Search by SKU Name Brand Category..."/>
+            
+            {role == "ADMIN" && (
+              <button
+                className="flex items-center bg-blue-700 hover:bg-blue-700 text-gray-200 font-normal py-2 px-3 rounded-md text-md"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <PlusCircleIcon className="w-5 h-5 mr-2" />
+                Add Product
+              </button>
+            )}
+          </div>
         </div>
 
-        {showLoader || isLoading ? (
+        {showLoader || isPaginatedProductsLoading ? (
           renderTableSkeleton()
         ) : (
-          <>
+          <div className="w-full">
             <div
               style={{ width: "100%", maxWidth: "fit-content" }}
               className="mt-8 h-[680px]"
@@ -253,7 +263,7 @@ const Products = () => {
               onClose={() => setIsModalOpen(false)}
               onCreate={handleCreateProduct}
             />
-          </>
+          </div>
         )}
       </div>
     </MainLayout>

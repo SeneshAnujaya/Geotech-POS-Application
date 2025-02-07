@@ -66,12 +66,19 @@ const cartSlice = createSlice({
                 }
             }
         },
+        updateWarrantyPeriod: (state, action) => {
+            const {sku, warrantyPeriod} = action.payload;
+            const item = state.cartItems.find((item) => item.sku === sku);
+            if(item) {
+                item.warrantyPeriod = warrantyPeriod;
+            }
+        },
         clearCart: (state) => {
             state.cartItems = [];
         }
     }
 });
 
-export const {addItemToCart, removeItemFromCart, increaseItemQuantity, decreaseItemQuantity,  updateCartItemQuantity, clearCart } = cartSlice.actions;
+export const {addItemToCart, removeItemFromCart, increaseItemQuantity, decreaseItemQuantity,  updateCartItemQuantity, updateWarrantyPeriod, clearCart } = cartSlice.actions;
 
-export default cartSlice.reducer;
+export default cartSlice.reducer;     

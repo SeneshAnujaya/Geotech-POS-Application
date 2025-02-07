@@ -8,6 +8,7 @@ import {
   updateCartItemQuantity,
   clearCart,
   removeItemFromCart,
+  updateWarrantyPeriod,
 } from "../redux/cart/cartSlice";
 import {
   CheckCircle2,
@@ -32,6 +33,7 @@ import SaleconfirmModal from "../components/SaleconfirmModal";
 import {
   useFetchCategoriesQuery,
   useFetchFilteredPaginatedProductsQuery,
+  useFetchPaginatedProductsQuery,
   useFetchPaginatedSalesQuery,
   useFetchProductsQuery,
   useFetchSalesQuery,
@@ -40,7 +42,8 @@ import {
 import Pagination from "../components/Pagination";
 import PlaceholderImage from "../assets/place-holder-img.jpeg";
 
-const apiUrl = import.meta.env.VITE_BACKEND_URL;
+const apiUrl = import.meta.env.VITE_API_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,6 +89,13 @@ const Orders = () => {
   const { refetch: refetchPaginatedSales } = useFetchPaginatedSalesQuery({
     page: 0,
     limit: 50,
+    searchTerm: "",
+  });
+
+  const { refetch: refetchPaginatedProducts } = useFetchPaginatedProductsQuery({
+    page: 0,
+    limit: 50,
+    searchTerm: "",
   });
 
   const { cartItems } = useSelector((state) => state.cart);
@@ -141,6 +151,11 @@ const Orders = () => {
     }
   };
 
+  // Handle custom warranty
+  const handleCustomWarranty = (sku, warranty) => {
+    dispatch(updateWarrantyPeriod({ sku, warrantyPeriod: warranty }));
+  };
+
   // Handle Buyer Type
   const handleBuyerTypeChange = (e) => {
     setIsBulkBuyer(e.target.value === "wholesale");
@@ -181,6 +196,8 @@ const Orders = () => {
       paidAmount,
       selectedClientId,
       grandTotal,
+      serviceCharge,
+      serviceDesc,
     } = formData;
 
     //  Sales record array
@@ -189,6 +206,7 @@ const Orders = () => {
       productId: item.productId,
       cartQuantity: item.cartQuantity,
       price: isBulkBuyer ? item.wholesalePrice : item.retailPrice,
+      warrantyPeriod: item.warrantyPeriod,
     }));
 
     try {
@@ -200,12 +218,14 @@ const Orders = () => {
           isBulkBuyer: isBulkBuyer,
           clientName,
           phoneNumber: phonenumber,
-          discount,
+          discount: discount === "" ? 0 : discount,
           total,
           paidAmount,
           selectedClientId,
           grandTotal,
           currentUserName,
+          serviceCharge,
+          serviceDesc,
         }
       );
 
@@ -227,15 +247,18 @@ const Orders = () => {
           discount,
           grandTotal,
           paidAmount,
-          invoiceNumber
+          invoiceNumber,
+          serviceCharge,
+          serviceDesc
         );
 
-        refetch();
         refetchSales();
         refetchWholesaleClients();
         refetchPaginatedSales();
+        refetchPaginatedProducts();
+        refetch();
       } else {
-        showErrorToast("Failed to update stock!");
+        showErrorToast("Failed sale & update stock!");
       }
     } catch (error) {
       console.log(error);
@@ -361,7 +384,7 @@ const Orders = () => {
                     <img
                       src={
                         product.category.categoryPic
-                          ? `${apiUrl}/uploads/${product.category.categoryPic}`
+                          ? `${backendUrl}/uploads/${product.category.categoryPic}`
                           : PlaceholderImage
                       }
                       // src={`${apiUrl}/uploads/${product.category.categoryPic}`}
@@ -487,21 +510,21 @@ const Orders = () => {
             <div className="h-[500px] overflow-auto mt-3 custom-scrollbar">
               {cartItems.map((item) => (
                 <div
-                  className="border mt-4 border-slate-700 rounded-md bg-slate-900 p-2 w-full"
+                  className="border mt-4 border-slate-700 rounded-md bg-slate-900 py-2 px-1.5 w-full"
                   key={item.sku}
                 >
                   <div className="flex items-center gap-2 w-full">
-                    <div className="">
+                    <div className="w-20">
                       <img
                         src={MouseImage}
                         alt="product-pic"
-                        className="w-24 h-auto rounded-md"
+                        className="w-20 h-auto rounded-md"
                       />
                     </div>
                     <div className="w-full p-1">
                       <div className="flex justify-between min-w-full">
-                        <div>
-                          <h4 className="text-[0.9rem] text-slate-200">
+                        <div className=" min-w-50">
+                          <h4 className="text-[0.9rem] text-slate-200 leading-tight">
                             {item.name}
                           </h4>
                           <p className="text-[0.9rem] text-slate-300 mt-1">
@@ -510,42 +533,55 @@ const Orders = () => {
                               ? parseFloat(item.wholesalePrice)
                               : parseFloat(item.retailPrice)}
                           </p>
-                        </div>
-                        <div
-                          className="bg-slate-700 h-8 p-2 rounded-full hover:cursor-pointer"
-                          onClick={() => handleRemoveItem(item.sku)}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-end w-full flex-wrap mt-2">
-                        <div className=" flex items-center gap-2 rounded-md">
-                          <button
-                            onClick={() => handleDecreaseQuantity(item.sku)}
-                            className="bg-slate-900 border border-slate-500 rounded-md p-[1px] hover:bg-blue-600 hover:border-blue-600"
-                          >
-                            <MinusIcon className="w-4 h-4 text-slate-200" />
-                          </button>
-
+                          {/* Custom warratny */}
                           <input
-                            type="number"
-                            value={item.cartQuantity}
-                            className="w-7 bg-slate-900 border border-slate-500 rounded-[4px] focus:outline-none no-arrows text-center text-slate-300"
+                            type="text"
+                            name="custom-warranty"
+                            className="mt-2 w-20 bg-slate-800 text-[0.9rem] px-1 border-slate-500 border rounded-[4px]"
+                            value={item.warrantyPeriod}
                             onChange={(e) =>
-                              handleManualQuantityChange(
-                                item.sku,
-                                e.target.value
-                              )
+                              handleCustomWarranty(item.sku, e.target.value)
                             }
-                            min="1"
                           />
-
-                          <button
-                            onClick={() => handleIncreaseQuantity(item.sku)}
-                            className="border border-slate-500  rounded-md p-[1px] hover:bg-blue-600  hover:border-blue-600"
+                        </div>
+                        <div className=" flex flex-col justify-between items-end">
+                          <div
+                            className="bg-slate-700 w-8 h-8 p-2 rounded-full hover:cursor-pointer"
+                            onClick={() => handleRemoveItem(item.sku)}
                           >
-                            <Plus className="w-4 h-4 text-slate-200" />
-                          </button>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </div>
+
+                          <div className="flex items-end justify-end w-full flex-wrap mt-2">
+                            <div className=" flex items-center gap-1 rounded-md">
+                              <button
+                                onClick={() => handleDecreaseQuantity(item.sku)}
+                                className="bg-slate-900 border border-slate-500 rounded-md p-[1px] hover:bg-blue-600 hover:border-blue-600"
+                              >
+                                <MinusIcon className="w-4 h-4 text-slate-200" />
+                              </button>
+
+                              <input
+                                type="number"
+                                value={item.cartQuantity}
+                                className="w-7 bg-slate-900 border border-slate-500 rounded-[4px] focus:outline-none no-arrows text-center text-slate-300 text-[0.9rem]"
+                                onChange={(e) =>
+                                  handleManualQuantityChange(
+                                    item.sku,
+                                    e.target.value
+                                  )
+                                }
+                                min="1"
+                              />
+
+                              <button
+                                onClick={() => handleIncreaseQuantity(item.sku)}
+                                className="border border-slate-500  rounded-md p-[1px] hover:bg-blue-600  hover:border-blue-600"
+                              >
+                                <Plus className="w-4 h-4 text-slate-200" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

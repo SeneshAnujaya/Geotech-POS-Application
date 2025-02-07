@@ -7,6 +7,7 @@ import {
   Icon,
   LogOut,
   Menu,
+  Repeat,
   ShoppingBag,
   UserCircle,
   Users,
@@ -143,9 +144,15 @@ const Sidebar = () => {
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
+          href="/returncancelSales"
+          icon={Repeat}
+          label="Return & Cancel"
+          isCollapsed={isSidebarCollapsed}
+        />
+        <SidebarLink
           href="/Wholesales"
           icon={Users}
-          label="Wholesale Clients"
+          label="Registered Clients"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink

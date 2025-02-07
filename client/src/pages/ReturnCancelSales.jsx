@@ -1,65 +1,41 @@
 import { useEffect, useState, Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchSales } from "../redux/sales/saleSlice";
 import InvoiceModal from "../components/InvoiceModal";
 import generatePDF from "../components/generatePDF";
+
 import {
-  useCancelSaleRecordMutation,
-  useFetchPaginatedSalesQuery,
-  useFetchSalesQuery,
+  useFetchDueSalesQuery,
+  useFetchReturnCancelSalesQuery,
 } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
 import { formatDateTime } from "../dateUtil";
-import { Repeat } from "lucide-react";
 import SearchBar from "../components/SearchBar";
-import CancelReturnModal from "../components/CancelReturnModal";
-import {
-  showErrorToast,
-  showSuccessToast,
-} from "../components/ToastNotification";
 
-const Sales = () => {
+const apiUrl = import.meta.env.VITE_API_URL;
+
+const ReturnCancelSales = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  // const [selectedSale, setSelectedSale] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState();
 
-  const [selectRecord, setSelectRecord] = useState("");
-  const [selectedSaleItems, setSelectedSaleItems] = useState([]);
-
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 50,
-  });
-
-
   const {
-    data: paginatedSales = { data: [] },
-    refetch,
-    isLoading: isPaginatedSaleLoading,
+    data: sales = { data: [] },
     error,
-  } = useFetchPaginatedSalesQuery({
-    page: paginationModel.page,
-    limit: paginationModel.pageSize,
-    searchTerm: debouncedSearchTerm,
-  });
-
-  const [cancelSale, { isLoading: isCanceling }] =
-    useCancelSaleRecordMutation();
+    isLoading,
+    refetch,
+  } = useFetchReturnCancelSalesQuery({ searchTerm: debouncedSearchTerm });
 
   const [showLoader, setShowLoader] = useState(true);
-  const { currentUser } = useSelector((state) => state.user);
-  const role = currentUser.rest.role;
 
   useEffect(() => {
     const loaderTimer = setTimeout(() => {
-      if (!isPaginatedSaleLoading) setShowLoader(false);
+      if (!isLoading) setShowLoader(false);
     }, 100);
 
     return () => clearTimeout(loaderTimer);
-  }, [isPaginatedSaleLoading]);
+  }, [isLoading]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -70,7 +46,9 @@ const Sales = () => {
     };
   }, [searchTerm]);
 
-  const rows = [...paginatedSales.data]
+  const filteredSales = [...sales.data];
+
+  const rows = filteredSales
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .map((sale) => ({
       id: sale.saleId,
@@ -85,14 +63,15 @@ const Sales = () => {
       col9: sale.user?.name || sale.cashierName || "N/A",
       col10: sale.saleStatus,
       col11: formatDateTime(sale.createdAt),
+     
     }));
 
   const columns = [
     { field: "col1", headerName: "Invoice Number", width: 170 },
-    { field: "col2", headerName: "Customer", width: 150 },
+    { field: "col2", headerName: "Name", width: 150 },
     { field: "col3", headerName: "Phone Number", width: 150 },
     { field: "col4", headerName: "Amount", width: 100 },
-    { field: "col5", headerName: "Discount", width: 70 },
+    { field: "col5", headerName: "Discount", width: 100 },
     { field: "col6", headerName: "Total", width: 100 },
     { field: "col7", headerName: "Paid", width: 100 },
     {
@@ -118,6 +97,7 @@ const Sales = () => {
       ),
     },
     { field: "col9", headerName: "Cashier", width: 150 },
+
     {
       field: "col10",
       headerName: "Sale Status",
@@ -127,12 +107,12 @@ const Sales = () => {
           <button
             variant="contained"
             color="primary"
-            className={`flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-semibold leading-none ${
-              params.value === "COMPLETED"
-                ? "bg-fuchsia-700"
-                : params.value === "HALF_RETURNED"
-                ? "bg-amber-600"
-                : "bg-red-700"
+            className={`bg-blue-800 flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-bold leading-none ${
+              params.value === "FULL_RETURNED"
+                ? "bg-purple-800"
+                : params.value === "CANCELED"
+                ? "bg-rose-700"
+                : "bg-orange-600"
             }`}
           >
             {params.value}
@@ -144,7 +124,7 @@ const Sales = () => {
     {
       field: "col12",
       headerName: "Invoice",
-      width: 120,
+      width: 140,
       renderCell: (params) => (
         <div className="flex items-center h-full">
           <button
@@ -158,37 +138,10 @@ const Sales = () => {
         </div>
       ),
     },
-  
-          {
-            field: "col13",
-            headerName: "Action",
-            width: 80,
-            renderCell: (params) => (
-              <div className="flex items-center h-full">
-                <button
-                  variant="contained"
-                  color="primary"
-                  className="w-full h-full  flex  rounded-full  items-center px-3 gap-1 disabled:opacity-40"
-                  onClick={() => handleActions(params.row.id)}
-                  disabled={false}
-                >
-                  <Repeat className="w-6 h-6 text-slate-300 hover:text-sky-500" />
-                  {/* Cancel */}
-                </button>
-              </div>
-            ),
-          },
-      
-     ,
   ];
 
   const handleInvoice = (saleId) => {
-    const selectSaleRecord = paginatedSales.data.find(
-      (sale) => sale.saleId === saleId
-    );
-
- 
-    
+    const selectSaleRecord = sales.data.find((sale) => sale.saleId === saleId);
 
     const invoiceItems = selectSaleRecord.SalesItem.map((item) => ({
       sku: item.product.sku,
@@ -211,7 +164,6 @@ const Sales = () => {
 
     const serviceDesc = selectSaleRecord.serviceDescription;
     const createdAt = selectSaleRecord.createdAt;
-    
 
     generatePDF(
       invoiceItems,
@@ -228,43 +180,6 @@ const Sales = () => {
       serviceDesc,
       createdAt
     );
-  };
-
-  const handleActions = (saleId) => {
-    setIsCancelModalOpen(true);
-    setSelectRecord(saleId);
-
-    const selectSaleRecord = paginatedSales.data.find(
-      (sale) => sale.saleId === saleId
-    );
-
-    const selectSaleItems = selectSaleRecord.SalesItem.map((item) => ({
-      sku: item.product.sku,
-      name: item.product.name,
-      cartQuantity: item.quantity,
-      price: item.price,
-    }));
-
-    setSelectedSaleItems(selectSaleItems);
-  };
-
-  // sku quantity saleitemprice
-
-  const handleCancelReturnSubmit = async (formData) => {
-   
-    try {
-      const response = await cancelSale(formData).unwrap();
-
-      if (!response.success) {
-        showErrorToast(data.message || "canceling record failed");
-        return;
-      }
-
-      showSuccessToast(response.message);
-    } catch (error) {
-      console.log(error);
-      showErrorToast(error.data.message);
-    }
   };
 
   const renderTableSkeleton = () => (
@@ -286,7 +201,7 @@ const Sales = () => {
     </Box>
   );
 
-  if (error || !paginatedSales) {
+  if (error || !sales) {
     return (
       <MainLayout>
         <div className=" text-red-700 py-4 px-4">
@@ -297,10 +212,10 @@ const Sales = () => {
   }
   return (
     <MainLayout>
-      <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 border rounded-md">
+      <div className="px-0 md:px-8 py-4 flex flex-col border-slate-700 rounded-md border">
         {/* Header bar */}
-        <div className="flex justify-between items-center mb-6 mt-2">
-          <h1 className="text-2xl font-semibold">Sale Records</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">Return & Cancel Sales</h1>
           {/* search bar */}
           <SearchBar
             setSearchTerm={setSearchTerm}
@@ -308,7 +223,7 @@ const Sales = () => {
           />
         </div>
 
-        {showLoader || isPaginatedSaleLoading ? (
+        {showLoader || isLoading ? (
           renderTableSkeleton()
         ) : (
           <>
@@ -363,14 +278,6 @@ const Sales = () => {
                       color: "#fff", // Color for pagination item text
                     },
                   }}
-                  pagination={true}
-                  paginationMode="server"
-                  rowCount={paginatedSales.total || 0}
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={(newModel) =>
-                    setPaginationModel(newModel)
-                  }
-                  loading={isPaginatedSaleLoading}
                 />
               </Suspense>
             </div>
@@ -380,14 +287,6 @@ const Sales = () => {
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
             />
-            {/* Cancel Retrun Modal */}
-            <CancelReturnModal
-              isOpen={isCancelModalOpen}
-              onClose={() => setIsCancelModalOpen(false)}
-              onCreate={handleCancelReturnSubmit}
-              saleId={selectRecord}
-              saleItems={selectedSaleItems}
-            />
           </>
         )}
       </div>
@@ -395,4 +294,4 @@ const Sales = () => {
   );
 };
 
-export default Sales;
+export default ReturnCancelSales;

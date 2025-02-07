@@ -44,10 +44,13 @@ const aggregateSalesByDate = (sales) => {
     salesByDate[saleDate] += saleAmount;
   });
 
-  return Object.keys(salesByDate).map((date) => ({
-    date,
-    amount: salesByDate[date],
-  }));
+  return Object.keys(salesByDate).map((date) => {
+    const formattedDate = new Date(date).toISOString().slice(0, 10).replace(/-/g, '/'); 
+    return {
+      date: formattedDate,
+      amount: salesByDate[date],
+    };
+  });
 };
 
 const Dashboard = () => {
@@ -64,6 +67,7 @@ const Dashboard = () => {
   const [totalSalesCount, setTotalSalesCount] = useState(0);
   const [dailyRevenue, setDailyRevenue] = useState(0);
   const [monthlySaleCount, setMonthlySaleCount] = useState(0);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0);
 
   useEffect(() => {
     const last14DaysSales = getLast14DaysSales(sales);
@@ -71,6 +75,7 @@ const Dashboard = () => {
     if (JSON.stringify(salesData) !== JSON.stringify(aggregatedData)) {
       setSalesData(aggregatedData);
     }
+    
   }, [sales]);
 
   // Sales data for datagrid
@@ -191,12 +196,28 @@ const Dashboard = () => {
     }
   };
 
+  const fetchMonthlyRevenue = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/sales/getMonthlyRevenue`);
+      if (response.data.success) {
+        setMonthlyRevenue(response.data.monthlyRevenue);
+      } else {
+        console.error("Failed to fetch Monthly Revenue");
+      }
+    } catch (error) {
+      console.error("Error fetching Monthly Revenue:", error);
+    }
+  };
+  
+
+
   // Get Total revenue
   useEffect(() => {
     fetchTotalRevenue();
     fetchTotalSales();
     fetchDailyRevenue();
     fetchMonthlySaleCount();
+    fetchMonthlyRevenue()
   }, []);
 
   return (
@@ -210,6 +231,11 @@ const Dashboard = () => {
             icon={<CircleDollarSign className="w-9 h-9 text-blue-400" />}
             amount={Number(totalRevenue).toFixed(2)}
             title="Total Revenue"
+          />
+           <IconCard
+            icon={<CircleDollarSign className="w-9 h-9 text-blue-400" />}
+            amount={Number(monthlyRevenue).toFixed(2)}
+            title="Monthly Revenue"
           />
           <IconCard
             icon={<CircleDollarSign className="w-9 h-9 text-blue-400" />}
@@ -242,9 +268,10 @@ const Dashboard = () => {
                 className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
                 sortModel={sortModel}
                 sx={{
+                
                   // Style for column headers
                   "& .MuiDataGrid-columnHeaders": {
-                    backgroundColor: "transparent", // Background color for header
+                    backgroundColor: "#0f172a", // Background color for header
                     color: "#fff", // Text color for header
                   },
                   // Style for virtual scroller (rows area)

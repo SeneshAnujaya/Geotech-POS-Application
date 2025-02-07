@@ -5,15 +5,20 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 const prisma = new PrismaClient();
 
 export const addBulkBuyer = async (req, res) => {
-  const { clientName, phonenumber, email, companyName } = req.body;
+  const { clientName, phonenumber, email, companyName, clientType } = req.body;
 
   if (!clientName || !phonenumber) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Client name and Phone number are required",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Client name and Phone number are required",
+    });
+  }
+
+  if (!clientType) {
+    return res.status(400).json({
+      success: false,
+      message: "Client type is required!",
+    });
   }
 
   try {
@@ -37,6 +42,7 @@ export const addBulkBuyer = async (req, res) => {
         email,
         companyName,
         outstandingBalance: 0.0,
+        type: clientType,
       },
     });
 
@@ -46,10 +52,10 @@ export const addBulkBuyer = async (req, res) => {
       data: newBulkBuyer,
     });
   } catch (error) {
-    console.error("Error adding bulk buyer:", error);
+    console.error("Error adding clients:", error);
     return res.status(500).json({
       success: false,
-      message: "Error adding bulk buyer",
+      message: "Error adding clients",
       error: error.message,
     });
   }
@@ -58,14 +64,44 @@ export const addBulkBuyer = async (req, res) => {
 // Get Wholesale Clients Infomation
 
 export const getBulkBuyers = async (req, res, next) => {
+  const { searchTerm } = req.query;
   try {
-    const bulkBuyersData = await prisma.bulkBuyer.findMany();
+    let bulkBuyersData;
+    if (searchTerm) {
+      bulkBuyersData = await prisma.bulkBuyer.findMany({
+        where: {
+          OR: [
+            {
+              name: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+            {
+              phoneNumber: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+            {
+              companyName: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+          ],
+        },
+      });
+    } else {
+      bulkBuyersData = await prisma.bulkBuyer.findMany();
+    }
 
     res.status(200).json({ success: true, data: bulkBuyersData });
   } catch (error) {
     res
       .status(500)
       .json({ success: false, message: "Error fetching bulkBuyers info" });
+    console.log(error);
   }
 };
 
@@ -129,12 +165,10 @@ export const deleteBulkBuyer = async (req, res) => {
     }
 
     if (bulkBuyer.outstandingBalance > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Cannot delete BulkBuyer with outstanding balance.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete BulkBuyer with outstanding balance.",
+      });
     }
 
     await prisma.bulkBuyer.delete({

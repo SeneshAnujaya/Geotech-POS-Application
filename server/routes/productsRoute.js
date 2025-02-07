@@ -10,7 +10,7 @@ router.get("/getpaginationProducts",  getPaginationProducts);
 router.get("/getfilteredPaginatedProducts", getPaginatedFilteredProducts)
 router.post("/updatestock",  updateProductsStock);
 router.delete("/delete/:sku", isAdmin, deleteProduct);
-router.put("/updateproduct/:sku", updateProduct);
+router.put("/updateproduct/:sku", isAdmin, updateProduct);
 
 
 export default router;

@@ -1,44 +1,34 @@
 import { useEffect, useState, Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import { DataGrid } from "@mui/x-data-grid";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchSales } from "../redux/sales/saleSlice";
 import InvoiceModal from "../components/InvoiceModal";
 import generatePDF from "../components/generatePDF";
-import DuePayModal from "../components/DuePayModal";
-import axios from "axios";
 import {
-  showErrorToast,
-  showSuccessToast,
-} from "../components/ToastNotification";
-import {
-  useFetchSalesQuery,
-  useFetchWholesaleClientsQuery,
+  useFetchDueSalesQuery
 } from "../redux/apiSlice";
 import { Box, CircularProgress, Skeleton } from "@mui/material";
+import { formatDateTime } from "../dateUtil";
+import SearchBar from "../components/SearchBar";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const DueSales = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  // const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState();
+
+  
 
   const {
     data: sales = { data: [] },
     error,
     isLoading,
     refetch,
-  } = useFetchSalesQuery(undefined, {
-    // refetchOnMountOrArgChange: true
-  });
+  } = useFetchDueSalesQuery({searchTerm: debouncedSearchTerm});
 
-  const { refetch: refetchWholesaleClients } = useFetchWholesaleClientsQuery(
-    undefined,
-    {
-      // refetchOnMountOrArgChange: true
-    }
-  );
+
 
   const [showLoader, setShowLoader] = useState(true);
 
@@ -50,10 +40,22 @@ const DueSales = () => {
     return () => clearTimeout(loaderTimer);
   }, [isLoading]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 600);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
+
   const filteredSales = sales.data.filter(
     (sale) =>
-      sale.paymentStatus === "UNPAID" || sale.paymentStatus === "PARTIALLY_PAID"
+      (sale.paymentStatus === "UNPAID" || sale.paymentStatus === "PARTIALLY_PAID") &&
+    sale.saleStatus !== "CANCELED" &&
+    sale.saleStatus !== "FULL_RETURNED"
   );
+  
 
   const rows = filteredSales
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -68,7 +70,7 @@ const DueSales = () => {
       col7: sale.paidAmount,
       col8: sale.paymentStatus,
       col9: sale.user?.name || sale.cashierName || "N/A",
-      // col10: new Date(sale.createdAt).toLocaleString(),
+      col10: formatDateTime(sale.createdAt),
     }));
 
   const columns = [
@@ -102,11 +104,11 @@ const DueSales = () => {
       ),
     },
     { field: "col9", headerName: "Cashier", width: 150 },
-
+    { field: "col10", headerName: "Created At", width: 180 },
     {
-      field: "col10",
+      field: "col11",
       headerName: "Invoice",
-      width: 120,
+      width: 140,
       renderCell: (params) => (
         <div className="flex items-center h-full">
           <button
@@ -120,23 +122,7 @@ const DueSales = () => {
         </div>
       ),
     },
-    {
-      field: "col11",
-      headerName: "Pay Due",
-      width: 120,
-      renderCell: (params) => (
-        <div className="flex items-center h-full">
-          <button
-            variant="contained"
-            color="primary"
-            className="bg-[#258f28] flex rounded-[3px] h-6 items-center px-2 text-[13px] font-medium"
-            onClick={() => handlePayModal(params.row.id)}
-          >
-            Pay Now
-          </button>
-        </div>
-      ),
-    },
+    
   ];
 
   const handleInvoice = (saleId) => {
@@ -145,7 +131,7 @@ const DueSales = () => {
     const invoiceItems = selectSaleRecord.SalesItem.map((item) => ({
       sku: item.product.sku,
       name: item.product.name,
-      warrantyPeriod: item.product.warrantyPeriod,
+      warrantyPeriod: item.warrantyPeriod ? item.warrantyPeriod : item.product.warrantyPeriod,
       cartQuantity: item.quantity,
       price: item.price,
     }));
@@ -156,9 +142,13 @@ const DueSales = () => {
     const billingName = selectSaleRecord.buyerName;
     const phoneNumber = selectSaleRecord.phoneNumber;
     const discount = selectSaleRecord.discount;
-    const grandTotal = total - discount;
+    const serviceCharge = selectSaleRecord.serviceCharge;
+    const grandTotal = total - discount + Number(serviceCharge);
     const paidAmount = selectSaleRecord.paidAmount;
     const invoiceNumber = selectSaleRecord.invoiceNumber;
+
+    const serviceDesc = selectSaleRecord.serviceDescription;
+    const createdAt = selectSaleRecord.createdAt;
 
     generatePDF(
       invoiceItems,
@@ -170,62 +160,15 @@ const DueSales = () => {
       discount,
       grandTotal,
       paidAmount,
-      invoiceNumber
+      invoiceNumber,
+      serviceCharge,
+      serviceDesc,
+      createdAt
     );
   };
 
-  const handlePayModal = (saleId) => {
-    const selectSaleRecord = filteredSales.find(
-      (sale) => sale.saleId === saleId
-    );
-    const finalTotal = selectSaleRecord.totalAmount - selectSaleRecord.discount;
-    const dueBalance = finalTotal - selectSaleRecord.paidAmount;
 
-    setIsPayModalOpen(true);
-    setSelectedSale({
-      saleId: saleId,
-      invoiceNumber: selectSaleRecord.invoiceNumber,
-      totalAmount: finalTotal,
-      paidAmount: selectSaleRecord.paidAmount,
-      dueBalance,
-      bulkBuyerId: selectSaleRecord.bulkBuyerId,
-    });
-  };
-
-  const handlePaymentSubmission = async ({
-    saleId,
-    bulkBuyerId,
-    payAmount,
-  }) => {
-    try {
-      const res = await axios.post(
-        `${apiUrl}/payment/create`,
-        {
-          saleId,
-          bulkBuyerId,
-          payAmount,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-
-      if (!res.data.success) {
-        showErrorToast("Payment added & sale record update failed!");
-      }
-
-      showSuccessToast("Payment added & sale record update successfully!");
-      refetch();
-      refetchWholesaleClients();
-    } catch (error) {
-      console.log(error);
-
-      showErrorToast("Payment added & sale record update failed!");
-    }
-  };
+ 
 
   const renderTableSkeleton = () => (
     <Box sx={{ width: "100%", maxWidth: "fit-content" }} className="mt-8">
@@ -261,6 +204,9 @@ const DueSales = () => {
         {/* Header bar */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Outstanding Sales</h1>
+          {/* search bar */}
+          <SearchBar setSearchTerm={setSearchTerm} placeholder="Search by Invoice Customer Phone Number..."/>
+          
         </div>
 
         {showLoader || isLoading ? (
@@ -273,7 +219,7 @@ const DueSales = () => {
                 maxWidth: "fit-content",
                 height: "680px",
               }}
-              className="mt-8"
+              className="mt-8 custom-scrollbar"
             >
               <Suspense fallback={<CircularProgress color="primary" />}>
                 <DataGrid
@@ -283,7 +229,7 @@ const DueSales = () => {
                   sx={{
                     // Style for column headers
                     "& .MuiDataGrid-columnHeaders": {
-                      backgroundColor: "transparent", // Background color for header
+                      backgroundColor: "#0f172a", // Background color for header
                       color: "#fff", // Text color for header
                     },
                     // Style for virtual scroller (rows area)
@@ -327,13 +273,7 @@ const DueSales = () => {
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
             />
-            {/* Pay Modal */}
-            <DuePayModal
-              isOpen={isPayModalOpen}
-              onClose={() => setIsPayModalOpen(false)}
-              saleDetails={selectedSale}
-              onCreate={handlePaymentSubmission}
-            />
+    
           </>
         )}
       </div>

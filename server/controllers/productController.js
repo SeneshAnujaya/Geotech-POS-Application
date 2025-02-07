@@ -92,7 +92,7 @@ export const getAllProducts = async (req, res) => {
 // GET PAGINATION PRODUCTS
 export const getPaginationProducts = async (req, res) => {
   try {
-    const { page = 0, limit = 20 } = req.query;
+    const { page = 0, limit = 20, searchTerm } = req.query;
     const pageNumber = parseInt(page);
     const pageSize = parseInt(limit);
 
@@ -113,8 +113,37 @@ export const getPaginationProducts = async (req, res) => {
     // const skip = Math.max(0, (pageNumber - 1) * pageSize);
     const skip = pageNumber * pageSize;
 
+    // Check searchterm matched for category
+    let categoryFilter = {};
+    if (searchTerm) {
+      const categoryMatch = await prisma.category.findFirst({
+        where: {
+          name: { contains: searchTerm, mode: "insensitive" },
+        },
+        select: { categoryId: true },
+      });
+
+      if (categoryMatch) {
+        categoryFilter = {
+          categoryId: categoryMatch.categoryId,
+        };
+      }
+    }
+
+    const searchFilter = searchTerm
+      ? {
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" } },
+            { sku: { contains: searchTerm, mode: "insensitive" } },
+            { brandName: { contains: searchTerm, mode: "insensitive" } },
+            categoryFilter,
+            // {category: { contains: searchTerm, mode: "insensitive" } },
+          ],
+        }
+      : {};
+
     const products = await prisma.product.findMany({
-      where: { isDeleted: false },
+      where: { isDeleted: false, ...searchFilter },
       include: {
         category: true,
       },
@@ -123,7 +152,7 @@ export const getPaginationProducts = async (req, res) => {
     });
 
     const totalProducts = await prisma.product.count({
-      where: { isDeleted: false },
+      where: { isDeleted: false, ...searchFilter },
     });
 
     res.status(200).json({
@@ -158,10 +187,9 @@ export const getPaginatedFilteredProducts = async (req, res) => {
 
     if (category) {
       where.category = {
-      name: { contains: category, mode: "insensitive" },
-      }
-    };
-
+        name: { equals: category, mode: "insensitive" },
+      };
+    }
 
     if (search) {
       where.OR = [
@@ -179,7 +207,9 @@ export const getPaginatedFilteredProducts = async (req, res) => {
       },
     });
 
-    const totalCount = await prisma.product.count({  where: { isDeleted: false } });
+    const totalCount = await prisma.product.count({
+      where: { isDeleted: false },
+    });
 
     res.status(200).json({
       success: true,
@@ -193,7 +223,10 @@ export const getPaginatedFilteredProducts = async (req, res) => {
 
     res
       .status(500)
-      .json({ success: false, message: "Error fetching paginated filtered products" });
+      .json({
+        success: false,
+        message: "Error fetching paginated filtered products",
+      });
   }
 };
 
@@ -231,6 +264,7 @@ export const updateProduct = async (req, res) => {
   const { sku } = req.params;
 
   const {
+    col1: productSku,
     col2: name,
     description,
     col3: costPrice,
@@ -246,6 +280,7 @@ export const updateProduct = async (req, res) => {
   }
 
   if (
+    !productSku &&
     !name &&
     !description &&
     !costPrice &&
@@ -271,9 +306,19 @@ export const updateProduct = async (req, res) => {
         .json({ success: false, message: "Product not found" });
     }
 
+    if(productSku && productSku !== sku) {
+      const existingProductWithSku = await prisma.product.findUnique({where: {sku: productSku}})
+      if(existingProductWithSku) {
+        return res.status(400).json({
+          success: false, message:`Product with SKU is already exists.`
+        })
+      }
+    }
+
     const updatedProduct = await prisma.product.update({
       where: { sku: sku },
       data: {
+        sku:productSku !== undefined ? productSku : product.sku,
         name: name || product.name,
         costPrice:
           costPrice !== undefined ? parseFloat(costPrice) : product.costPrice,

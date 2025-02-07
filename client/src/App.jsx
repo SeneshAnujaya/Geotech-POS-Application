@@ -23,6 +23,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { checkSetupStatus } from "./redux/initialSetup/initialStatusSlice";
+import MoreClientInfo from "./pages/MoreClientInfo";
+import ReturnCancelSales from "./pages/ReturnCancelSales";
+import UserProfile from "./pages/UserProfile";
 // import { useCheckSetupStatusQuery } from './redux/apiSlice';
 
 const theme = createTheme({
@@ -59,8 +62,11 @@ const App = () => {
             <Route path="/products" element={<Products />} />
             <Route path="/sales" element={<Sales />} />
             <Route path="/duesales" element={<DueSales />} />
+            <Route path="/returncancelSales" element={<ReturnCancelSales />} />
             <Route path="/Wholesales" element={<WholesaleClients />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/moreclientinfo/:id" element={<MoreClientInfo />} />
+            <Route path="/profile" element={<UserProfile />}/>
           </Route>
           <Route path="*" element={<Navigate to="/sign-in" />} />
         </Routes>

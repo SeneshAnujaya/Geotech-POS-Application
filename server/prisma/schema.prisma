@@ -70,10 +70,16 @@ model Sale {
   discount    Float  @default(0.00)
   paidAmount Float  @default(0.00)
   paymentStatus String @default("UNPAID")
+  saleStatus  String? @default("COMPLETED")
   createdAt   DateTime   @default(now())
   buyerName   String?  
   phoneNumber String?
+  serviceCharge Float @default(0.00)
+  serviceDescription String?
   cashierName  String?
+  returnSaleId String? @db.ObjectId
+  returnedItemsTotal Float? @default(0.0)
+
    
   user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
   SalesItem   SalesItem[]
@@ -89,7 +95,8 @@ model SalesItem {
   saleId      String @db.ObjectId
   productId   String @db.ObjectId
   quantity    Int
-  price       Float   
+  price       Float
+  warrantyPeriod String?   
 
   sale        Sale       @relation(fields: [saleId], references: [saleId])
   product     Product    @relation(fields: [productId], references: [productId])
@@ -103,6 +110,8 @@ model BulkBuyer {
   companyName   String?
   outstandingBalance Float  @default(0.00) // Track unpaid balance
   createdAt     DateTime   @default(now())
+  type          String @default("BULK")
+  updatedAt     DateTime? @updatedAt
 
   Sales Sale[]
   Payments        Payment[] 
@@ -110,13 +119,14 @@ model BulkBuyer {
 
 model Payment {
   paymentId     String       @id @default(auto()) @map("_id") @db.ObjectId
-  saleId        String    @db.ObjectId
+  saleId        String?    @db.ObjectId
   bulkBuyerId   String?   @db.ObjectId
   paymentAmount Float    
   paymentDate   DateTime   @default(now())
   paymentMethod String?   // (e.g., "cash", "credit card", "bank transfer")
+  receiptNumber String?       @unique
   
-  sale          Sale       @relation(fields: [saleId], references: [saleId])
+  sale          Sale?       @relation(fields: [saleId], references: [saleId])
   bulkBuyer     BulkBuyer? @relation(fields: [bulkBuyerId], references: [bulkBuyerId])
 
   @@index([saleId, paymentDate]) // Index for quick lookups of payments by sale and date

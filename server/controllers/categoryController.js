@@ -64,7 +64,7 @@ export const getAllCategories = async (req, res) => {
 
 // Delete Category
 export const deleteCategory = async (req, res) => {
-  const { id } = req.params;  
+  const { id } = req.params;
 
   try {
     const relatedProducts = await prisma.product.findMany({
@@ -108,26 +108,81 @@ export const deleteCategory = async (req, res) => {
 // Edit Category
 export const updateCategory = async (req, res) => {
   const { id } = req.params;
-  const { name } = req.body;
 
-  try {
-    const updatedCategory = await prisma.category.update({
-      where: { categoryId: id },
-      data: { name },
-    });
-
-    if (updateCategory) {
-      res.status(200).json({
-        success: true,
-        message: "Category updated successfully",
-        data: updateCategory,
-      });
+  upload.single("categoryPic")(req, res, async (err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: "File upload error" });
     }
+
+    try {
+      const existingCategory = await prisma.category.findUnique({
+        where: { categoryId: id },
+      });
+
+      if (!existingCategory) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Category not found" });
+      }
+
+      const { name } = req.body;
+
+      const categoryPic = req.file
+        ? req.file.filename
+        : existingCategory.categoryPic;
+
+   
+      const updatedData = {
+        ...(name && { name }),
+        categoryPic,
+      };
+ 
+
+      const updatedCategory = await prisma.category.update({
+        where: { categoryId: id },
+        data: updatedData,
+      });
+
+      if (updateCategory) {
+        res.status(200).json({
+          success: true,
+          message: "Category updated successfully",
+          data: updateCategory,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+
+      res
+        .status(500)
+        .json({ success: false, message: "Error updating category" });
+    }
+  });
+};
+
+// Get All Categories
+export const getFilteredCategories = async (req, res) => {
+  const { searchTerm } = req.query;
+  try {
+    let categories;
+    if (searchTerm) {
+      categories = await prisma.category.findMany({
+        where: {
+          name: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+      });
+    } else {
+      categories = await prisma.category.findMany();
+    }
+    return res.status(200).json({ success: true, data: categories });
   } catch (error) {
-    console.log(error);
-    
     res
       .status(500)
-      .json({ success: false, message: "Error updating category" });
+      .json({ success: false, message: "Error fetching categories" });
   }
 };

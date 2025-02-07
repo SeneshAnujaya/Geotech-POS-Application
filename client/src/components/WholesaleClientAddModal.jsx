@@ -1,11 +1,20 @@
 import React, { useState } from "react";
+import { useFetchWholesaleClientsQuery } from "../redux/apiSlice";
+import { showErrorToast } from "./ToastNotification";
 
 const WholesaleClientAddModal = ({ isOpen, onClose, onCreate }) => {
   const [formData, setFormData] = useState({});
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!formData.clientType) {
+      showErrorToast("Please select a client type");
+      return;
+    }
+
     onCreate(formData);
+    setFormData({});
     onClose();
   };
 
@@ -17,6 +26,14 @@ const WholesaleClientAddModal = ({ isOpen, onClose, onCreate }) => {
     });
   };
 
+  const handleClientTypeChange = (e) => {
+    const clientType = e.target.value;
+    setFormData({
+      ...formData,
+      clientType,
+    });
+  };
+
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-gray-950 bg-opacity-70 overflow-y-auto h-full w-full z-20">
@@ -25,6 +42,26 @@ const WholesaleClientAddModal = ({ isOpen, onClose, onCreate }) => {
           Create New Client
         </h1>
         <form onSubmit={handleSubmit} className="mt-5">
+          <>
+            <label
+              htmlFor="client-type"
+              className="block text-sm font-medium text-gray-300"
+            >
+              Select Client Type
+            </label>
+            <select
+              className="w-full p-2 rounded-md text-slate-800"
+              onChange={handleClientTypeChange}
+              name="clientType"
+              value={formData.clientType}
+              required
+            >
+              <option value="">Select a client Type...</option>
+              <option value="REGULAR">Regular</option>
+              <option value="BULK">Wholesale</option>
+            </select>
+          </>
+          {/* ---------------------------------- */}
           <label
             htmlFor="name"
             className="block text-sm font-medium text-gray-300"
