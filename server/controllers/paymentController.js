@@ -73,6 +73,9 @@ export const getSingleClientPayments = async (req, res) => {
       where: {
         bulkBuyerId: id,
       },
+      orderBy: {
+        paymentDate: "desc",
+      },
     });
 
     res.status(200).json({ success: true, data: clientPayments });
@@ -80,5 +83,6 @@ export const getSingleClientPayments = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Error fetching client payments" });
+    console.log(error);
   }
 };

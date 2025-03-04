@@ -9,6 +9,7 @@ import {
   clearCart,
   removeItemFromCart,
   updateWarrantyPeriod,
+  setCustomPrice,
 } from "../redux/cart/cartSlice";
 import {
   CheckCircle2,
@@ -118,7 +119,12 @@ const Orders = () => {
 
   // Cart functionalities
   const handleAddToCart = (product) => {
-    dispatch(addItemToCart(product));
+    dispatch(
+      addItemToCart({
+        ...product,
+        customPrice: isBulkBuyer ? product.wholesalePrice : product.retailPrice,
+      })
+    );
   };
 
   const isInCart = (sku) => {
@@ -156,20 +162,45 @@ const Orders = () => {
     dispatch(updateWarrantyPeriod({ sku, warrantyPeriod: warranty }));
   };
 
+  // Handle custom price
+  const handleCustomPrice = (sku, price) => {
+    dispatch(setCustomPrice({ sku, price }));
+  };
+
   // Handle Buyer Type
   const handleBuyerTypeChange = (e) => {
     setIsBulkBuyer(e.target.value === "wholesale");
+
+    cartItems.forEach((item) => {
+      dispatch(
+        setCustomPrice({
+          sku: item.sku,
+          price:
+            e.target.value === "wholesale"
+              ? item.wholesalePrice
+              : item.retailPrice,
+        })
+      );
+    });
   };
 
   // Calculate Totals
   const { subTotal, total } = useMemo(() => {
     let subTotal = 0;
     cartItems.forEach((item) => {
-      subTotal +=
-        item.cartQuantity *
-        (isBulkBuyer
+      const price =
+        item.customPrice !== null
+          ? parseFloat(item.customPrice)
+          : isBulkBuyer
           ? parseFloat(item.wholesalePrice)
-          : parseFloat(item.retailPrice));
+          : parseFloat(item.retailPrice);
+
+      subTotal += item.cartQuantity * price;
+      // subTotal +=
+      //   item.cartQuantity *
+      //   (isBulkBuyer
+      //     ? parseFloat(item.wholesalePrice)
+      //     : parseFloat(item.retailPrice));
     });
 
     const total = subTotal;
@@ -183,9 +214,22 @@ const Orders = () => {
     if (!cartItems || cartItems.length === 0) {
       showWarningToast("Cart is empty");
       return;
-    } else {
-      setIsModalOpen(true);
     }
+
+    const hasInvalidPrice = cartItems.some(
+      (item) =>
+        !item.customPrice ||
+        isNaN(Number(item.customPrice)) ||
+        item.customPrice === "" ||
+        item.customPrice <= 0
+    );
+
+    if (hasInvalidPrice) {
+      showWarningToast("products have an invalid price.");
+      return;
+    }
+
+    setIsModalOpen(true);
   };
 
   const handlePrintInvoice = async (formData) => {
@@ -205,9 +249,16 @@ const Orders = () => {
       sku: item.sku,
       productId: item.productId,
       cartQuantity: item.cartQuantity,
-      price: isBulkBuyer ? item.wholesalePrice : item.retailPrice,
+      price:
+        item.customPrice !== undefined
+          ? parseFloat(item.customPrice)
+          : isBulkBuyer
+          ? parseFloat(item.wholesalePrice)
+          : parseFloat(item.retailPrice),
       warrantyPeriod: item.warrantyPeriod,
     }));
+
+    console.log(typeof itemsToRecord[0].price);
 
     try {
       const res = await axios.post(
@@ -237,7 +288,12 @@ const Orders = () => {
         generatePDF(
           cartItems.map((item) => ({
             ...item,
-            price: isBulkBuyer ? item.wholesalePrice : item.retailPrice,
+            price:
+              item.customPrice !== undefined
+                ? item.customPrice
+                : isBulkBuyer
+                ? item.wholesalePrice
+                : item.retailPrice,
           })),
           total,
           currentUserName,
@@ -488,7 +544,7 @@ const Orders = () => {
           </div>
         </div>
         {/* cart side */}
-        <div className="w-full xl:w-1/4  border border-slate-700 rounded-md bg-slate-900 p-4 flex flex-col justify-between">
+        <div className="w-full xl:w-1/4 border border-slate-700 rounded-md bg-slate-900 p-4 flex flex-col justify-between">
           <div>
             <h4 className="font-medium text-lg ">Order Detail</h4>
             {/*Cart items container*/}
@@ -527,17 +583,43 @@ const Orders = () => {
                           <h4 className="text-[0.9rem] text-slate-200 leading-tight">
                             {item.name}
                           </h4>
-                          <p className="text-[0.9rem] text-slate-300 mt-1">
+                          {/* <p className="text-[0.9rem] text-slate-300 mt-1">
                             LKR{" "}
                             {isBulkBuyer
                               ? parseFloat(item.wholesalePrice)
                               : parseFloat(item.retailPrice)}
-                          </p>
+                          </p> */}
+                          {/* Custom Price */}
+                          <div className="flex items-center gap-2  mt-2 flex-wrap">
+                            <label className="text-[0.9rem] text-slate-300">
+                              LKR{" "}
+                            </label>
+                            <input
+                              type="text"
+                              min="0"
+                              name="custom-price"
+                              className=" w-16 bg-slate-900 text-[0.9rem] px-1 border-slate-600 border rounded-[4px]  focus:border-blue-500 focus:outline-none"
+                              value={item.customPrice}
+                              // readOnly={!isEditingPrice}
+                              // onFocus={() => setIsEditingPrice(true)}
+                              // onBlur={() => {setIsEditingPrice(false); handleCustomPrice({sku: item.sku, price: customNewPrice})}}
+                              onChange={(e) => {
+                                const numericValue = e.target.value.replace(
+                                  /\D/g,
+                                  ""
+                                );
+                                handleCustomPrice(item.sku, numericValue);
+                              }}
+                            />
+                            <span>
+                              {/* <SquarePen className="w-5 text-slate-400 hover:text-blue-500 cursor-pointer"/> */}
+                            </span>
+                          </div>
                           {/* Custom warratny */}
                           <input
                             type="text"
                             name="custom-warranty"
-                            className="mt-2 w-20 bg-slate-800 text-[0.9rem] px-1 border-slate-500 border rounded-[4px]"
+                            className="mt-2 w-20 bg-slate-900 text-[0.9rem] px-1 border-slate-600 border rounded-[4px]"
                             value={item.warrantyPeriod}
                             onChange={(e) =>
                               handleCustomWarranty(item.sku, e.target.value)
@@ -597,7 +679,9 @@ const Orders = () => {
             </p>
             <div className="flex justify-between items-center gap-2 mt-3">
               <p className="text-slate-300 text-[0.9rem]">Sub Total</p>
-              <p className="text-slate-300 text-[0.9rem]">LKR {subTotal}</p>
+              <p className="text-slate-300 text-[0.9rem]">
+                LKR {isNaN(subTotal) ? 0 : subTotal}
+              </p>
             </div>
 
             <div className="w-full h-px bg-slate-700 mt-3 mb-2"></div>
@@ -606,7 +690,7 @@ const Orders = () => {
                 Total
               </p>
               <p className="text-slate-200 font-semibold text-[0.92rem]">
-                LKR {total}
+                LKR {isNaN(total) ? 0 : total}
               </p>
             </div>
 

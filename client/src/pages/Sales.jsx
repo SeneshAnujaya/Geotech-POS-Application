@@ -132,7 +132,7 @@ const Sales = () => {
                 ? "bg-fuchsia-700"
                 : params.value === "HALF_RETURNED"
                 ? "bg-amber-600"
-                : "bg-red-700"
+                : "bg-[#FF3F80]"
             }`}
           >
             {params.value}

@@ -347,7 +347,7 @@ export const getDailyRevenue = async (req, res) => {
 
     const excludedTodaySalesTotalRev = excludedTodaySales.reduce(
       (sum, sale) => {
-        const totalAmount = parseFloat(sale.totalAmount);
+        const totalAmount = parseFloat(sale.paidAmount);
         return sum + totalAmount;
       },
       0
@@ -437,35 +437,29 @@ export const getMonthlyRevenue = async (req, res) => {
       },
     });
 
-      // Fetch canceled and full return sales
-      const excludeMonthlySales = await prisma.sale.findMany({
-        where: {
-          createdAt: {
-            gte: startOfMonthDate,
-            lte: endOfMonthDate,
-          },
-          OR: [{ saleStatus: "CANCELED" }, { saleStatus: "FULL_RETURNED" }],
+    // Fetch canceled and full return sales
+    const excludeMonthlySales = await prisma.sale.findMany({
+      where: {
+        createdAt: {
+          gte: startOfMonthDate,
+          lte: endOfMonthDate,
         },
-        select: {
-          totalAmount: true,
-          paidAmount: true,
-          saleStatus: true,
-        },
-      });
+        OR: [{ saleStatus: "CANCELED" }, { saleStatus: "FULL_RETURNED" }],
+      },
+      select: {
+        totalAmount: true,
+        paidAmount: true,
+        saleStatus: true,
+      },
+    });
 
-  
-      
-
-      const excludedMonthlySalesTotalRev = excludeMonthlySales.reduce(
-        (sum, sale) => {
-          const totalAmount = parseFloat(sale.totalAmount) || 0;
-          return sum + totalAmount;
-        },
-        0
-      );
-
-    
-      
+    const excludedMonthlySalesTotalRev = excludeMonthlySales.reduce(
+      (sum, sale) => {
+        const totalAmount = parseFloat(sale.totalAmount) || 0;
+        return sum + totalAmount;
+      },
+      0
+    );
 
     const laterPaymentsThisMonth = await prisma.payment.findMany({
       where: {
@@ -489,7 +483,8 @@ export const getMonthlyRevenue = async (req, res) => {
       0
     );
 
-    const monthlyTotalRev = monthlySalesRev - excludedMonthlySalesTotalRev + monthlyPaymentsRev;
+    const monthlyTotalRev =
+      monthlySalesRev - excludedMonthlySalesTotalRev + monthlyPaymentsRev;
 
     res.status(200).json({
       success: true,
@@ -592,10 +587,16 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
         },
       });
 
+      const productSkus = items.map((item) => item.sku);
+      const products = await prisma.product.findMany({
+        where: { sku: { in: productSkus } },
+      });
+
       for (const item of items) {
-        const product = await prisma.product.findUnique({
-          where: { sku: item.sku },
-        });
+        // const product = await prisma.product.findUnique({
+        //   where: { sku: item.sku },
+        // });
+        const product = products.find((p) => p.sku === item.sku);
 
         if (!product) {
           throw new Error(`Product with SKU ${item.sku} not found`);
@@ -604,24 +605,45 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
         if (product.quantity < item.cartQuantity) {
           throw new Error(`Not enough stock for product: ${product.name}`);
         }
-
-        // Create SalesItem
-        await prisma.salesItem.create({
-          data: {
-            saleId: newSale.saleId,
-            productId: item.productId,
-            quantity: item.cartQuantity,
-            price: item.price,
-            warrantyPeriod: item.warrantyPeriod
-          },
-        });
-
-        // Update Stock
-        await prisma.product.update({
-          where: { sku: item.sku },
-          data: { quantity: product.quantity - item.cartQuantity },
-        });
       }
+
+      // Create SalesItem
+      // await prisma.salesItem.create({
+      //   data: {
+      //     saleId: newSale.saleId,
+      //     productId: item.productId,
+      //     quantity: item.cartQuantity,
+      //     price: item.price,
+      //     warrantyPeriod: item.warrantyPeriod,
+      //   },
+      // });
+
+      // New add step 3 - Create Sales Items in Bulk
+      await prisma.salesItem.createMany({
+        data: items.map((item) => ({
+          saleId: newSale.saleId,
+          productId: item.productId,
+          quantity: item.cartQuantity,
+          price: item.price,
+          warrantyPeriod: item.warrantyPeriod,
+        })),
+      });
+
+
+      // New add step 4 - Bulk Update Stock
+      const updateStockQueries = items.map((item) =>  prisma.product.update({
+        where: { sku: item.sku },
+        data: { quantity: {decrement: item.cartQuantity} },
+      }))
+
+      await Promise.all(updateStockQueries)
+       
+
+      // Update Stock
+      // await prisma.product.update({
+      //   where: { sku: item.sku },
+      //   data: { quantity: product.quantity - item.cartQuantity },
+      // });
 
       if (selectedClientId) {
         const bulkBuyer = await prisma.bulkBuyer.update({
@@ -634,7 +656,7 @@ export const createSaleRecordWithStockUpdate = async (req, res) => {
         });
       }
       return newSale;
-    });
+    },{ timeout: 40000 });
 
     res.status(201).json({
       success: true,

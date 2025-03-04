@@ -45,7 +45,10 @@ const aggregateSalesByDate = (sales) => {
   });
 
   return Object.keys(salesByDate).map((date) => {
-    const formattedDate = new Date(date).toISOString().slice(0, 10).replace(/-/g, '/'); 
+    const formattedDate = new Date(date)
+      .toISOString()
+      .slice(0, 10)
+      .replace(/-/g, "/");
     return {
       date: formattedDate,
       amount: salesByDate[date],
@@ -75,7 +78,6 @@ const Dashboard = () => {
     if (JSON.stringify(salesData) !== JSON.stringify(aggregatedData)) {
       setSalesData(aggregatedData);
     }
-    
   }, [sales]);
 
   // Sales data for datagrid
@@ -208,8 +210,6 @@ const Dashboard = () => {
       console.error("Error fetching Monthly Revenue:", error);
     }
   };
-  
-
 
   // Get Total revenue
   useEffect(() => {
@@ -217,7 +217,7 @@ const Dashboard = () => {
     fetchTotalSales();
     fetchDailyRevenue();
     fetchMonthlySaleCount();
-    fetchMonthlyRevenue()
+    fetchMonthlyRevenue();
   }, []);
 
   return (
@@ -232,7 +232,7 @@ const Dashboard = () => {
             amount={Number(totalRevenue).toFixed(2)}
             title="Total Revenue"
           />
-           <IconCard
+          <IconCard
             icon={<CircleDollarSign className="w-9 h-9 text-blue-400" />}
             amount={Number(monthlyRevenue).toFixed(2)}
             title="Monthly Revenue"
@@ -268,7 +268,6 @@ const Dashboard = () => {
                 className="text-white! rounded-lg border !border-gray-400 !text-gray-200"
                 sortModel={sortModel}
                 sx={{
-                
                   // Style for column headers
                   "& .MuiDataGrid-columnHeaders": {
                     backgroundColor: "#0f172a", // Background color for header

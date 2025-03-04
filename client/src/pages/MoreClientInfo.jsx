@@ -69,8 +69,10 @@ const MoreClientInfo = () => {
   );
 
   const clientAllSales = [...clientSales.data].filter(
-    (sale) => sale.bulkBuyerId == clientId
+    (sale) => sale.bulkBuyerId == clientId && sale.saleStatus !== "CANCELED"
   );
+  
+
   
 
   // DATAGRID ROWS AND COLUMNS FOR PAYMENTS TABLE
@@ -139,7 +141,8 @@ const MoreClientInfo = () => {
       col7: sale.paidAmount,
       col8: sale.paymentStatus,
       col9: sale.user?.name || sale.cashierName || "N/A",
-      col10: formatDateTime(sale.createdAt),
+      col10: sale.saleStatus,
+      col11: formatDateTime(sale.createdAt),
     }));
 
   const columns = [
@@ -173,9 +176,31 @@ const MoreClientInfo = () => {
       ),
     },
     { field: "col9", headerName: "Cashier", width: 150 },
-    { field: "col10", headerName: "Created At", width: 200 },
     {
-      field: "col11",
+      field: "col10",
+      headerName: "Sale Status",
+      width: 180,
+      renderCell: (params) => (
+        <div className="flex items-center  h-full">
+          <button
+            variant="contained"
+            color="primary"
+            className={`flex rounded-full h-[22px] pt-0.5 items-center px-3 text-[11px] font-semibold leading-none ${
+              params.value === "COMPLETED"
+                ? "bg-fuchsia-700"
+                : params.value === "HALF_RETURNED"
+                ? "bg-amber-600"
+                : "bg-[#FF3F80]"
+            }`}
+          >
+            {params.value}
+          </button>
+        </div>
+      ),
+    },
+    { field: "col11", headerName: "Created At", width: 200 },
+    {
+      field: "col12",
       headerName: "Invoice",
       width: 200,
       renderCell: (params) => (
