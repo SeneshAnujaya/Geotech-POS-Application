@@ -65,7 +65,6 @@ A full-featured Point of Sale (POS) system built specifically for a computer sho
 
 ## 🖼 Screenshots
 
-> Add screenshots like below to visualize the UI:
 
 ```markdown
 ![Dashboard](./screenshots/dashboard.png)
@@ -78,12 +77,12 @@ A full-featured Point of Sale (POS) system built specifically for a computer sho
 git clone https://github.com/SeneshAnujaya/Geotech-POS-Application.git
 
 ### 2. Frontend
-bash
+
 cd client
 npm install & npm run dev
 
 ### 2. Backend
-bash
+
 cd server
 npm install & npm run dev
 
