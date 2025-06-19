@@ -66,7 +66,6 @@ A full-featured Point of Sale (POS) system built specifically for a computer sho
 ## 🖼 Screenshots
 
 
-```markdown
 ![Dashboard](./screenshots/dashboard.png)
 
 
